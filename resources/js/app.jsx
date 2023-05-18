@@ -1,5 +1,6 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
+import ChatWidget from './widgets/ChatWidget';
 
 const darkTheme = createTheme({
   palette: {
@@ -11,7 +12,7 @@ export default function() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <main>This app is using the dark mode</main>
+      <ChatWidget />
     </ThemeProvider>
   );
 }

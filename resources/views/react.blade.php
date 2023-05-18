@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
   <head>
+    @viteReactRefresh
     @vite('resources/js/bootstrap.jsx')
   </head>
   <body>
