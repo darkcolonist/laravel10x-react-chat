@@ -15,7 +15,10 @@ const Item = styled(Paper)(({ theme }) => ({
 }));
 
 const MeListItem = styled(ListItem)(({ theme }) => ({
-  justifyContent: "flex-end"
+  justifyContent: "flex-end",
+  "& .MuiCard-root": {
+    backgroundColor: theme.palette.info.dark,
+  },
 }));
 
 const OtherListItem = styled(ListItem)(({ theme }) => ({
