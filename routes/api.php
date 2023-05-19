@@ -14,6 +14,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('message', function(){
+  sleep(rand(1,3)); // sleep between 1 to 3 seconds
+
+  return response()->json([
+    'postdata' => request()->all(),
+    'message' => Str::uuid()
+  ]);
+});
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

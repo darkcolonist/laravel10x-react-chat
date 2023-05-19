@@ -7,7 +7,7 @@ import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-const maxMessages = 10;
+const maxMessages = 5;
 
 const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-end",
@@ -81,11 +81,13 @@ export default function(){
   const messageRef = useRef('');
 
   const messageSamples = [
-    /* MeListItem */    { type:"out", message: "Hey man, What's up ?", time: "09:30"},
-    /* OtherListItem */ { type:"in", message: "Hey, Iam Good! What about you ?", time: "09:31"},
-    /* MeListItem */    { type:"out", message: "Cool. i am good, let's catch up!", time: "10:30"},
-    /* OtherListItem */ { type:"in", message: "sure thing", time: "10:30"},
-    /* MeListItem */    { type:"out", message: "ayt sounds like a plan", time: "10:31"},
+    // /* MeListItem */    { type:"out", message: "Hey man, What's up ?", time: "09:30"},
+    // /* OtherListItem */ { type:"in", message: "Hey, Iam Good! What about you ?", time: "09:31"},
+    // /* MeListItem */    { type:"out", message: "Cool. i am good, let's catch up!", time: "10:30"},
+    // /* OtherListItem */ { type:"in", message: "sure thing", time: "10:30"},
+    // /* MeListItem */    { type:"out", message: "ayt sounds like a plan", time: "10:31"},
+    { type: "out", message: "What to do?", time: "-00:00" },
+    { type: "in", message: "Just type then send a message to see what happens.", time: "-00:00" },
   ];
 
   const [messages,setMessages] = React.useState([]);
@@ -113,7 +115,7 @@ export default function(){
   //   }
   // }
 
-  const addNewMessage = (newMessage) => {
+  const addNewMessage = async (newMessage) => {
     newMessage["status"] = "sending";
     newMessage["clientID"] = currentMessageID;
 
@@ -129,19 +131,66 @@ export default function(){
 
     setMessages(updatedMessages);
 
-    // below is for ajax simulation ONLY, set simulateAjax to true
-    const simulateAjax = false;
-    if (simulateAjax){
-      console.info('SIMULATION', 'updating', newMessage, ' in a few');
-      setTimeout(() => {
-        const updatedMessage = { ...newMessage, status: 'sent' }; // Update the color property
-        const messageIndex = updatedMessages.indexOf(newMessage);
-        const updatedMessagesCopy = [...updatedMessages];
-        updatedMessagesCopy[messageIndex] = updatedMessage;
-        setMessages(updatedMessagesCopy);
-        console.info('SIMULATION', 'updated', updatedMessage);
-      }, 1000);
+    if (newMessage.type === "out") {
+      const axiosResponse = await axios.post('api/message', newMessage);
+
+      // console.info(axiosResponse.data.message);
+
+      // Add a new message with the initial status
+      const inMessage = {
+        type: "in",
+        message: axiosResponse.data.message,
+        time: "00:00",
+        clientID: currentMessageID + 1
+      };
+
+      setCurrentMessageID(currentMessageID + 2);
+
+      setMessages((prevMessages) => {
+        prevMessages.shift();
+        return [...prevMessages, inMessage]
+      });
+
+      // change check mark of send message to green
+      setMessages((prevMessages) => {
+        const updatedMessagesCopy = [...prevMessages];
+        const messageIndex = updatedMessagesCopy.findIndex(
+          (message) => message.clientID === newMessage.clientID
+        );
+        if (messageIndex !== -1) {
+          // Update the status of the message
+          updatedMessagesCopy[messageIndex] = {
+            ...newMessage,
+            status: 'sent'
+          };
+        }
+        return updatedMessagesCopy;
+      });
+
+      // Simulate AJAX update
+      const simulateAjax = false;
+      if (simulateAjax) {
+        console.info('SIMULATION', 'updating', newMessage, 'in a few');
+        setTimeout(() => {
+          setMessages((prevMessages) => {
+            const updatedMessagesCopy = [...prevMessages];
+            const messageIndex = updatedMessagesCopy.findIndex(
+              (message) => message.clientID === inMessage.clientID
+            );
+            if (messageIndex !== -1) {
+              // Update the status of the message
+              updatedMessagesCopy[messageIndex] = {
+                ...inMessage,
+                status: 'sent'
+              };
+            }
+            return updatedMessagesCopy;
+          });
+          console.info('SIMULATION', 'updated', inMessage);
+        }, 1000);
+      }
     }
+
   }
 
   const handleSubmit = async (e) => {
