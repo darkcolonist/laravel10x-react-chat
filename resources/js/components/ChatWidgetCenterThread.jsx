@@ -1,10 +1,13 @@
 import React, { useRef } from "react";
 import Grid from '@mui/material/Grid';
 import { Button, Card, CardContent, Divider, Fab, List, ListItem, TextField, Typography } from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
 import { styled } from '@mui/material/styles';
+import SendIcon from '@mui/icons-material/Send';
+import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-const maxMessages = 3;
+const maxMessages = 10;
 
 const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-end",
@@ -12,31 +15,55 @@ const MeListItemStyled = styled(ListItem)(({ theme }) => ({
     // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.info.dark : theme.palette.info.light,
     backgroundColor: theme.palette.info[theme.palette.mode],
   },
+  "& .statusIcon": {
+    fontSize: 15
+  }
 }));
 
 const OtherListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-start"
 }));
 
+const MessageCardContent = function(props){
+  return (
+    <CardContent>
+      <Typography>{props.message}</Typography>
+      <Typography title='time shows here'>{props.time}</Typography>
+    </CardContent>
+  )
+}
+
 const OtherListItem = function (props) {
   return <OtherListItemStyled>
+    <AccountCircleIcon />
     <Card>
-      <CardContent>
-        <Typography>{props.message}</Typography>
-        <Typography>{props.time}</Typography>
-      </CardContent>
+      <MessageCardContent {...props} />
     </Card>
   </OtherListItemStyled>
+}
+
+const MessageSentStatus = function(props){
+  if(props.status === undefined)
+    return;
+
+  let content;
+  if(props.status === "sent")
+    content = <CheckCircleIcon className="statusIcon" color="success" />
+  else
+    content = <CircleIcon className="statusIcon" color="disabled" />
+
+  return <Typography
+    variant="body2" title={props.status}>{content}</Typography>
 }
 
 const MeListItem = function (props) {
   return <MeListItemStyled>
     <Card>
-      <CardContent>
-        <Typography>{props.message}</Typography>
-        <Typography>{props.time}</Typography>
-      </CardContent>
+      <MessageCardContent {...props} />
     </Card>
+
+    <MessageSentStatus {...props} />
+
   </MeListItemStyled>
 }
 
@@ -44,7 +71,7 @@ const MessageListItem = function (props){
   let OurComponent;
   if(props.type === "in")
     OurComponent = OtherListItem;
-    else
+  else
     OurComponent = MeListItem;
 
   return <OurComponent {...props} />
@@ -62,12 +89,36 @@ export default function(){
   ];
 
   const [messages,setMessages] = React.useState([]);
+  const [currentMessageID,setCurrentMessageID] = React.useState(1);
 
   React.useEffect(() => {
-    setMessages(messageSamples); // for testing only
+    setMessages(messageSamples); // for testing and development only
   },[]);
 
+  // const updateMessage = (clientMessageID, updates) => {
+  //   // Retrieve the current state array
+  //   const messagesCopy = [...messages];
+
+  //   // Find the specific item in the copied array
+  //   const messageToUpdate = messagesCopy.find((message) => message.clientID === clientMessageID);
+
+  //   console.info(messagesCopy);
+
+  //   if (messageToUpdate) {
+  //     // Update the desired property or properties of the item
+  //     messageToUpdate.status = 'sent';
+
+  //     // Set the modified array back to the state
+  //     setMessages(messagesCopy);
+  //   }
+  // }
+
   const addNewMessage = (newMessage) => {
+    newMessage["status"] = "sending";
+    newMessage["clientID"] = currentMessageID;
+
+    setCurrentMessageID(currentMessageID+1);
+
     const updatedMessages = [...messages, newMessage];
 
     // Check if the array length exceeds {maxMessages}
@@ -77,6 +128,20 @@ export default function(){
     }
 
     setMessages(updatedMessages);
+
+    // below is for ajax simulation ONLY, set simulateAjax to true
+    const simulateAjax = false;
+    if (simulateAjax){
+      console.info('SIMULATION', 'updating', newMessage, ' in a few');
+      setTimeout(() => {
+        const updatedMessage = { ...newMessage, status: 'sent' }; // Update the color property
+        const messageIndex = updatedMessages.indexOf(newMessage);
+        const updatedMessagesCopy = [...updatedMessages];
+        updatedMessagesCopy[messageIndex] = updatedMessage;
+        setMessages(updatedMessagesCopy);
+        console.info('SIMULATION', 'updated', updatedMessage);
+      }, 1000);
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -86,13 +151,16 @@ export default function(){
     if(message.trim() == '')
       return;
 
-    // console.info('attempting to send', message);
     addNewMessage({
       type: "out",
       message,
       time: "00:00"
     });
 
+    // TODO send message to ajax
+    // console.info('attempting to send', message);
+
+    // finally clear the textfield
     messageRef.current.value = '';
   }
 
@@ -109,6 +177,7 @@ export default function(){
         component="form" onSubmit={handleSubmit}>
         <Grid item xs={11}>
           <TextField id="outlined-basic-message-text" label="Type Something" fullWidth
+            autoComplete="off"
             inputRef={messageRef} />
         </Grid>
         <Grid item xs={1} align="right">
