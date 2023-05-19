@@ -3,9 +3,8 @@ import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
-import { Divider, Fab, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
+import { Card, CardContent, Divider, Fab, List, ListItem, ListItemText, TextField, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import { blueGrey, indigo } from '@mui/material/node/colors';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -15,16 +14,12 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const AuthorListItem = styled(ListItem)(({ theme }) => ({
-  backgroundColor: indigo[900],
-  borderRadius: 20,
-  margin: 5
+const MeListItem = styled(ListItem)(({ theme }) => ({
+  justifyContent: "flex-end"
 }));
 
-const ResponderListItem = styled(ListItem)(({ theme }) => ({
-  backgroundColor: blueGrey[900],
-  borderRadius: 20,
-  margin: 5
+const OtherListItem = styled(ListItem)(({ theme }) => ({
+  justifyContent: "flex-start"
 }));
 
 export default function() {
@@ -38,12 +33,17 @@ export default function() {
         <Grid item xs={12}>
 
           <Grid container spacing={2}>
-            <Grid item xs={2}>
+            <Grid item xs={2} sx={{
+              display: {
+                xs: "none",
+                md: "block"
+              }
+            }}>
               <Item>left sidebar</Item>
             </Grid>
-            <Grid item xs={8}>
+            <Grid item xs={12} md={8}>
               <List className='messageArea' spacing={2}>
-                <AuthorListItem key="1">
+                <ListItem key="1">
                   <Grid container>
                     <Grid item xs={12}>
                       <ListItemText align="right" primary="Hey man, What's up ?"></ListItemText>
@@ -52,8 +52,8 @@ export default function() {
                       <ListItemText align="right" secondary="09:30"></ListItemText>
                     </Grid>
                   </Grid>
-                </AuthorListItem>
-                <ResponderListItem key="2">
+                </ListItem>
+                <ListItem key="2">
                   <Grid container>
                     <Grid item xs={12}>
                       <ListItemText align="left" primary="Hey, Iam Good! What about you ?"></ListItemText>
@@ -62,8 +62,8 @@ export default function() {
                       <ListItemText align="left" secondary="09:31"></ListItemText>
                     </Grid>
                   </Grid>
-                </ResponderListItem>
-                <AuthorListItem key="3">
+                </ListItem>
+                <ListItem key="3">
                   <Grid container>
                     <Grid item xs={12}>
                       <ListItemText align="right" primary="Cool. i am good, let's catch up!"></ListItemText>
@@ -72,7 +72,26 @@ export default function() {
                       <ListItemText align="right" secondary="10:30"></ListItemText>
                     </Grid>
                   </Grid>
-                </AuthorListItem>
+                </ListItem>
+
+
+                <OtherListItem>
+                  <Card>
+                    <CardContent>
+                      <Typography>Sure thing</Typography>
+                      <Typography>10:30</Typography>
+                    </CardContent>
+                  </Card>
+                </OtherListItem>
+
+                <MeListItem>
+                  <Card>
+                    <CardContent>
+                      <Typography>ayt sounds like a plan</Typography>
+                      <Typography>10:31</Typography>
+                    </CardContent>
+                  </Card>
+                </MeListItem>
               </List>
 
               <Divider />
@@ -85,7 +104,12 @@ export default function() {
                 </Grid>
               </Grid>
             </Grid>
-            <Grid item xs={2}>
+            <Grid item xs={2} sx={{
+              display: {
+                xs: "none",
+                md: "block"
+              }
+            }}>
               <Item>right sidebar</Item>
             </Grid>
           </Grid>
