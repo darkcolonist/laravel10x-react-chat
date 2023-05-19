@@ -5,9 +5,10 @@ import { styled } from '@mui/material/styles';
 import SendIcon from '@mui/icons-material/Send';
 import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-const maxMessages = 5;
+const maxMessages = 10;
 
 const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-end",
@@ -49,6 +50,8 @@ const MessageSentStatus = function(props){
   let content;
   if(props.status === "sent")
     content = <CheckCircleIcon className="statusIcon" color="success" />
+  else if(props.status === "error")
+    content = <ErrorCircleIcon className="statusIcon" color="error" />
   else
     content = <CircleIcon className="statusIcon" color="disabled" />
 
@@ -115,6 +118,40 @@ export default function(){
   //   }
   // }
 
+  const setNewMessageSuccess = (setMessages, theMessage) => {
+    setMessages((prevMessages) => {
+      const updatedMessagesCopy = [...prevMessages];
+      const messageIndex = updatedMessagesCopy.findIndex(
+        (message) => message.clientID === theMessage.clientID
+      );
+      if (messageIndex !== -1) {
+        // Update the status of the message
+        updatedMessagesCopy[messageIndex] = {
+          ...theMessage,
+          status: 'sent'
+        };
+      }
+      return updatedMessagesCopy;
+    });
+  }
+
+  const setNewMessageError = (setMessages, theMessage) => {
+    setMessages((prevMessages) => {
+      const updatedMessagesCopy = [...prevMessages];
+      const messageIndex = updatedMessagesCopy.findIndex(
+        (message) => message.clientID === theMessage.clientID
+      );
+      if (messageIndex !== -1) {
+        // Update the status of the message
+        updatedMessagesCopy[messageIndex] = {
+          ...theMessage,
+          status: 'error'
+        };
+      }
+      return updatedMessagesCopy;
+    });
+  }
+
   const addNewMessage = async (newMessage) => {
     newMessage["status"] = "sending";
     newMessage["clientID"] = currentMessageID;
@@ -132,63 +169,57 @@ export default function(){
     setMessages(updatedMessages);
 
     if (newMessage.type === "out") {
-      const axiosResponse = await axios.post('api/message', newMessage);
+      try{
+        const axiosResponse = await axios.post('api/message', newMessage);
+        // console.info(axiosResponse.data.message);
 
-      // console.info(axiosResponse.data.message);
+        // Add a new message with the initial status
+        const inMessage = {
+          type: "in",
+          message: axiosResponse.data.message,
+          time: "00:00",
+          clientID: currentMessageID + 1
+        };
 
-      // Add a new message with the initial status
-      const inMessage = {
-        type: "in",
-        message: axiosResponse.data.message,
-        time: "00:00",
-        clientID: currentMessageID + 1
-      };
+        setCurrentMessageID(currentMessageID + 2);
 
-      setCurrentMessageID(currentMessageID + 2);
+        setMessages((prevMessages) => {
+          // Check if the array length exceeds {maxMessages}
+          if (prevMessages.length > maxMessages) {
+            // Remove the first item from the array
+            prevMessages.shift();
+          }
+          return [...prevMessages, inMessage]
+        });
 
-      setMessages((prevMessages) => {
-        prevMessages.shift();
-        return [...prevMessages, inMessage]
-      });
-
-      // change check mark of send message to green
-      setMessages((prevMessages) => {
-        const updatedMessagesCopy = [...prevMessages];
-        const messageIndex = updatedMessagesCopy.findIndex(
-          (message) => message.clientID === newMessage.clientID
-        );
-        if (messageIndex !== -1) {
-          // Update the status of the message
-          updatedMessagesCopy[messageIndex] = {
-            ...newMessage,
-            status: 'sent'
-          };
-        }
-        return updatedMessagesCopy;
-      });
-
-      // Simulate AJAX update
-      const simulateAjax = false;
-      if (simulateAjax) {
-        console.info('SIMULATION', 'updating', newMessage, 'in a few');
-        setTimeout(() => {
-          setMessages((prevMessages) => {
-            const updatedMessagesCopy = [...prevMessages];
-            const messageIndex = updatedMessagesCopy.findIndex(
-              (message) => message.clientID === inMessage.clientID
-            );
-            if (messageIndex !== -1) {
-              // Update the status of the message
-              updatedMessagesCopy[messageIndex] = {
-                ...inMessage,
-                status: 'sent'
-              };
-            }
-            return updatedMessagesCopy;
-          });
-          console.info('SIMULATION', 'updated', inMessage);
-        }, 1000);
+        // change check mark of send message to green
+        setNewMessageSuccess(setMessages, newMessage);
+      }catch(e){
+        setNewMessageError(setMessages, newMessage);
       }
+
+      // // Simulate AJAX update
+      // const simulateAjax = false;
+      // if (simulateAjax) {
+      //   console.info('SIMULATION', 'updating', newMessage, 'in a few');
+      //   setTimeout(() => {
+      //     setMessages((prevMessages) => {
+      //       const updatedMessagesCopy = [...prevMessages];
+      //       const messageIndex = updatedMessagesCopy.findIndex(
+      //         (message) => message.clientID === inMessage.clientID
+      //       );
+      //       if (messageIndex !== -1) {
+      //         // Update the status of the message
+      //         updatedMessagesCopy[messageIndex] = {
+      //           ...inMessage,
+      //           status: 'sent'
+      //         };
+      //       }
+      //       return updatedMessagesCopy;
+      //     });
+      //     console.info('SIMULATION', 'updated', inMessage);
+      //   }, 1000);
+      // }
     }
 
   }
