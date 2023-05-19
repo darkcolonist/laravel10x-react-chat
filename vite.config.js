@@ -17,13 +17,13 @@ export default ({mode}) => {
        * the watch options below should be enabled if working behind a
        * docker instance
        */
-      watch: {
-        usePolling: true,
-        interval: 1000,
-      },
+      // watch: {
+      //   usePolling: true,
+      //   interval: 1000,
+      // },
     },
     plugins: [
-      laravel(['resources/js/bootstrap.js']),
+      laravel(['resources/js/bootstrap.jsx']),
       react(),
     ],
   });
