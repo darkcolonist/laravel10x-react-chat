@@ -87,8 +87,13 @@ const MessageListItem = function (props){
   return <OurComponent {...props} />
 }
 
+const getListHeight = () => {
+  return window.innerHeight - 201;
+}
+
 export default function(){
   const messageRef = useRef('');
+  const messageListRef = useRef(null);
 
   const messageSamples = [
     // /* MeListItem */    { type:"out", message: "Hey man, What's up ?", time: "09:30"},
@@ -98,14 +103,41 @@ export default function(){
     // /* MeListItem */    { type:"out", message: "ayt sounds like a plan", time: "10:31"},
     { type: "out", message: "What to do?", time: "-00:00" },
     { type: "in", message: "Just type then send a message to see what happens.", time: "-00:00" },
+
+
+    /* test fill-ins */
+    // ...Array(20).fill().map((_, index) => ({ type: "out", message: `test ${index + 1}`, time: "-00:00" }))
   ];
 
   const [messages,setMessages] = React.useState([]);
   const [currentMessageID,setCurrentMessageID] = React.useState(1);
+  const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
 
   React.useEffect(() => {
     setMessages(messageSamples); // for testing and development only
   },[]);
+
+  React.useEffect(() => {
+    // Scroll to the bottom of the list
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  React.useEffect(() => {
+    // Function to handle window resize event
+    const handleResize = () => {
+      setListHeight(getListHeight()); // Update the list height when window is resized
+    };
+
+    // Add event listener for window resize
+    window.addEventListener('resize', handleResize);
+
+    // Clean up the event listener when component is unmounted
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   // const updateMessage = (clientMessageID, updates) => {
   //   // Retrieve the current state array
@@ -253,7 +285,12 @@ export default function(){
 
   return (
     <Grid item xs={12} md={8}>
-      <List className='messageArea' spacing={2}>
+      <List className='messageArea' spacing={2}
+        ref={messageListRef}
+        sx={{
+        height: listHeight,
+        overflow: "auto"
+      }}>
         {messages.map((item, i) =>
           <MessageListItem key={i} {...item} />
         )}
