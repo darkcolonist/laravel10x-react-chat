@@ -255,11 +255,11 @@ export default function(){
     if(isFormDisabled)
       return;
 
-    setIsFormDisabled(true);
-
     const message = messageRef.current.value;
     if(message.trim() == '')
       return;
+
+    setIsFormDisabled(true);
 
     submitMessageToServer({
       type: "out",
