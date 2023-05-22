@@ -1,6 +1,10 @@
 <!doctype html>
 <html>
   <head>
+    <script>
+      const APP_NAME="{{env("APP_NAME")}}";
+    </script>
+
     @viteReactRefresh
     @vite('resources/js/bootstrap.jsx')
   </head>

@@ -36,7 +36,14 @@ const MessageCardContent = function(props){
 
 const OtherListItem = function (props) {
   return <OtherListItemStyled>
-    <AccountCircleIcon />
+    <AccountCircleIcon
+      sx={{
+        display: {
+          xs: "block",
+          md: "none",
+        }
+      }}
+    />
     <Card>
       <MessageCardContent {...props} />
     </Card>

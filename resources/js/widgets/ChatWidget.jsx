@@ -4,6 +4,8 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import ChatWidgetCenterThread from '../components/ChatWidgetCenterThread';
+import ChatWidgetProfileCard from '../components/ChatWidgetProfileCard';
+import { blue, red } from '@mui/material/colors';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -18,7 +20,7 @@ export default function() {
     <Box sx={{ flexGrow: 1 }}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
-          <Item>header</Item>
+          <Item>{APP_NAME}</Item>
         </Grid>
 
         <Grid item xs={12}>
@@ -30,7 +32,7 @@ export default function() {
                 md: "block"
               }
             }}>
-              <Item>left sidebar</Item>
+              <ChatWidgetProfileCard name="FML Guy" description="The daily struggle guy" bgcolor={red[500]} />
             </Grid>
 
             <ChatWidgetCenterThread />
@@ -41,14 +43,14 @@ export default function() {
                 md: "block"
               }
             }}>
-              <Item>right sidebar</Item>
+              <ChatWidgetProfileCard name="Operator" description="This is you" bgcolor={blue[300]} />
             </Grid>
           </Grid>
 
         </Grid>
 
         <Grid item xs={12}>
-          <Item>footer</Item>
+          <Item>{APP_NAME}</Item>
         </Grid>
       </Grid>
     </Box>
