@@ -2,7 +2,9 @@
 <html>
   <head>
     <script>
-      const APP_NAME="{{env("APP_NAME")}}";
+      const APP_NAME="{{config("app.name")}}";
+      const WIDGET_MAX_MESSAGES="{{config("app.widget_max_messages")}}";
+      const PAGE_LOAD="{{date("r")}}";
     </script>
 
     @viteReactRefresh

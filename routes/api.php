@@ -48,7 +48,8 @@ Route::post('message', function(){
 
   return response()->json([
     'postdata' => request()->all(),
-    'message' => getRandomFML()
+    'message' => getRandomFML(),
+    'timestamp' => date("r")
   // ], 400);
   ], 200);
 });

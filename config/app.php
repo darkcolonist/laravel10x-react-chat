@@ -212,4 +212,6 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+  'widget_max_messages' => env('WIDGET_MAX_MESSAGES', 10),
+
 ];

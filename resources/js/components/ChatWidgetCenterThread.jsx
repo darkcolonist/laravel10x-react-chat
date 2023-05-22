@@ -8,8 +8,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 
-const maxMessages = 10;
-
 const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-end",
   "& .MuiCard-root": {
@@ -21,6 +19,11 @@ const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   }
 }));
 
+const TimeTypography = styled(Typography)(({ theme }) => ({
+  fontSize: "80%",
+  opacity: .6
+}));
+
 const OtherListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-start"
 }));
@@ -29,7 +32,7 @@ const MessageCardContent = function(props){
   return (
     <CardContent>
       <Typography>{props.message}</Typography>
-      <Typography title='time shows here'>{props.time}</Typography>
+      <TimeTypography title='time shows here'>{props.time}</TimeTypography>
     </CardContent>
   )
 }
@@ -101,8 +104,8 @@ export default function(){
     // /* MeListItem */    { type:"out", message: "Cool. i am good, let's catch up!", time: "10:30"},
     // /* OtherListItem */ { type:"in", message: "sure thing", time: "10:30"},
     // /* MeListItem */    { type:"out", message: "ayt sounds like a plan", time: "10:31"},
-    { type: "out", message: "What to do?", time: "-00:00" },
-    { type: "in", message: "Just type then send a message to see what happens.", time: "-00:00" },
+    { type: "out", message: "What to do?", time: PAGE_LOAD },
+    { type: "in", message: "Just type then send a message to see what happens.", time: PAGE_LOAD },
 
 
     /* test fill-ins */
@@ -191,21 +194,23 @@ export default function(){
     });
   }
 
-  const addNewMessage = async (newMessage) => {
+  const appendToMessages = (newMessageObject) => {
+    setMessages((prevMessages) => {
+      // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
+      if (prevMessages.length > WIDGET_MAX_MESSAGES) {
+        // Remove the first item from the array
+        prevMessages.shift();
+      }
+      return [...prevMessages, newMessageObject]
+    });
+  }
+
+  const submitMessageToServer = async (newMessage) => {
     newMessage["status"] = "sending";
     newMessage["clientID"] = currentMessageID;
 
     setCurrentMessageID(currentMessageID+1);
-
-    const updatedMessages = [...messages, newMessage];
-
-    // Check if the array length exceeds {maxMessages}
-    if (updatedMessages.length > maxMessages) {
-      // Remove the first item from the array
-      updatedMessages.shift();
-    }
-
-    setMessages(updatedMessages);
+    appendToMessages(newMessage);
 
     if (newMessage.type === "out") {
       try{
@@ -213,54 +218,22 @@ export default function(){
         // console.info(axiosResponse.data.message);
 
         // Add a new message with the initial status
-        const inMessage = {
+        const serverMessageResponse = {
           type: "in",
           message: axiosResponse.data.message,
-          time: "00:00",
+          time: axiosResponse.data.timestamp,
           clientID: currentMessageID + 1
         };
 
         setCurrentMessageID(currentMessageID + 2);
-
-        setMessages((prevMessages) => {
-          // Check if the array length exceeds {maxMessages}
-          if (prevMessages.length > maxMessages) {
-            // Remove the first item from the array
-            prevMessages.shift();
-          }
-          return [...prevMessages, inMessage]
-        });
+        appendToMessages(serverMessageResponse);
 
         // change check mark of send message to green
-        setNewMessageSuccess(setMessages, newMessage);
+        setNewMessageSuccess(setMessages, {...newMessage, time: serverMessageResponse.time});
       }catch(e){
-        setNewMessageError(setMessages, newMessage);
+        setNewMessageError(setMessages, {...newMessage, time: "error"});
       }
-
-      // // Simulate AJAX update
-      // const simulateAjax = false;
-      // if (simulateAjax) {
-      //   console.info('SIMULATION', 'updating', newMessage, 'in a few');
-      //   setTimeout(() => {
-      //     setMessages((prevMessages) => {
-      //       const updatedMessagesCopy = [...prevMessages];
-      //       const messageIndex = updatedMessagesCopy.findIndex(
-      //         (message) => message.clientID === inMessage.clientID
-      //       );
-      //       if (messageIndex !== -1) {
-      //         // Update the status of the message
-      //         updatedMessagesCopy[messageIndex] = {
-      //           ...inMessage,
-      //           status: 'sent'
-      //         };
-      //       }
-      //       return updatedMessagesCopy;
-      //     });
-      //     console.info('SIMULATION', 'updated', inMessage);
-      //   }, 1000);
-      // }
     }
-
   }
 
   const handleSubmit = async (e) => {
@@ -270,14 +243,11 @@ export default function(){
     if(message.trim() == '')
       return;
 
-    addNewMessage({
+    submitMessageToServer({
       type: "out",
       message,
-      time: "00:00"
+      time: "sending..."
     });
-
-    // TODO send message to ajax
-    // console.info('attempting to send', message);
 
     // finally clear the textfield
     messageRef.current.value = '';
