@@ -1,12 +1,13 @@
 import React, { useRef } from "react";
 import Grid from '@mui/material/Grid';
-import { Button, Card, CardContent, Divider, Fab, List, ListItem, TextField, Typography } from '@mui/material';
+import { Button, Card, CardContent, Collapse, Divider, Fab, List, ListItem, TextField, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import SendIcon from '@mui/icons-material/Send';
 import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { Transition, TransitionGroup } from "react-transition-group";
 
 const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-end",
@@ -116,16 +117,21 @@ export default function(){
   const [currentMessageID,setCurrentMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
 
-  React.useEffect(() => {
-    setMessages(messageSamples); // for testing and development only
-  },[]);
-
-  React.useEffect(() => {
+  const scrollToBottom = () => {
     // Scroll to the bottom of the list
     if (messageListRef.current) {
       messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
     }
-  }, [messages]);
+  }
+
+  React.useEffect(() => {
+    setMessages(messageSamples); // for testing and development only
+  },[]);
+
+  // // the transition already handles this.
+  // React.useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   React.useEffect(() => {
     // Function to handle window resize event
@@ -258,12 +264,17 @@ export default function(){
       <List className='messageArea' spacing={2}
         ref={messageListRef}
         sx={{
-        height: listHeight,
-        overflow: "auto"
-      }}>
-        {messages.map((item, i) =>
-          <MessageListItem key={i} {...item} />
-        )}
+          height: listHeight,
+          overflow: "auto"
+        }}
+      >
+        <TransitionGroup>
+          {messages.map((item, i) => (
+            <Collapse key={i} timeout={500} onEntered={() => scrollToBottom()}>
+              <MessageListItem {...item} />
+            </Collapse>
+          ))}
+        </TransitionGroup>
       </List>
 
       <Divider />
