@@ -98,6 +98,7 @@ const getListHeight = () => {
 export default function(){
   const messageRef = useRef('');
   const messageListRef = useRef(null);
+  const audioRef = useRef(null);
 
   const messageSamples = [
     // /* MeListItem */    { type:"out", message: "Hey man, What's up ?", time: "09:30"},
@@ -116,6 +117,7 @@ export default function(){
   const [messages,setMessages] = React.useState([]);
   const [currentMessageID,setCurrentMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
+  const [isFormDisabled, setIsFormDisabled] = React.useState(false);
 
   const scrollToBottom = () => {
     // Scroll to the bottom of the list
@@ -234,16 +236,26 @@ export default function(){
         setCurrentMessageID(currentMessageID + 2);
         appendToMessages(serverMessageResponse);
 
+        // play our sound
+        audioRef.current.play();
+
         // change check mark of send message to green
         setNewMessageSuccess(setMessages, {...newMessage, time: serverMessageResponse.time});
       }catch(e){
         setNewMessageError(setMessages, {...newMessage, time: "error"});
       }
+
+      setIsFormDisabled(false);
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if(isFormDisabled)
+      return;
+
+    setIsFormDisabled(true);
 
     const message = messageRef.current.value;
     if(message.trim() == '')
@@ -281,12 +293,16 @@ export default function(){
       <Grid container style={{ padding: '20px' }}
         component="form" onSubmit={handleSubmit}>
         <Grid item xs={11}>
+          <audio ref={audioRef}>
+            <source src={`${APP_URL}/assets/sounds/ding.mp3`} type="audio/mpeg" />
+          </audio>
           <TextField id="outlined-basic-message-text" label="Type Something" fullWidth
             autoComplete="off"
             inputRef={messageRef} />
         </Grid>
         <Grid item xs={1} align="right">
-          <Fab color="primary" aria-label="add" component={Button} type="submit"><SendIcon /></Fab>
+          <Fab disabled={isFormDisabled} color="primary"
+            aria-label="add" component={Button} type="submit"><SendIcon /></Fab>
         </Grid>
       </Grid>
     </Grid>
