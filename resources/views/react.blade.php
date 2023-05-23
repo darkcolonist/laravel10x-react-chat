@@ -4,6 +4,7 @@
     <script>
       const APP_NAME="{{config("app.name")}}";
       const APP_URL="{{config("app.url")}}";
+      const APP_VISITOR="{{request()->getClientIP()}}";
       const WIDGET_MAX_MESSAGES="{{config("app.widget_max_messages")}}";
       const PAGE_LOAD="{{date("r")}}";
     </script>

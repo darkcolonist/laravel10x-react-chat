@@ -7,7 +7,9 @@ import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { Transition, TransitionGroup } from "react-transition-group";
+import { TransitionGroup } from "react-transition-group";
+
+const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
 const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-end",
@@ -107,7 +109,7 @@ export default function(){
     // /* OtherListItem */ { type:"in", message: "sure thing", time: "10:30"},
     // /* MeListItem */    { type:"out", message: "ayt sounds like a plan", time: "10:31"},
     { type: "out", message: "What to do?", time: PAGE_LOAD },
-    { type: "in", message: "Just type then send a message to see what happens.", time: PAGE_LOAD },
+    { type: "in", message: WELCOME_MESSAGE, time: PAGE_LOAD },
 
 
     /* test fill-ins */
