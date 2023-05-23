@@ -2,6 +2,7 @@
 <html>
   <head>
     <script>
+      const SESSION_ID="{{session()->getId()}}";
       const APP_NAME="{{config("app.name")}}";
       const APP_URL="{{config("app.url")}}";
       const APP_VISITOR="{{request()->getClientIP()}}";
