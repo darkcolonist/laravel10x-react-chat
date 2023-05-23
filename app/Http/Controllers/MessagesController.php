@@ -12,7 +12,9 @@ class MessagesController extends Controller
   {
     ConversationFacade::send(request()->get('message'), session()->getId());
 
-    return response()->json(0, 200);
+    return response()->json([
+      "timestamp" => date("r")
+    ], 200);
   }
 
   public function fetch()

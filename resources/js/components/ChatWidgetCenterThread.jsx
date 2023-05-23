@@ -227,23 +227,26 @@ export default function(){
         const axiosResponse = await axios.post('message/send', newMessage);
         // console.info(axiosResponse.data.message);
 
-        // Add a new message with the initial status
-        const serverMessageResponse = {
-          type: "in",
-          message: axiosResponse.data.message,
-          time: axiosResponse.data.timestamp,
-          clientID: currentMessageID + 1
-        };
+        const timestamp = axiosResponse.data.timestamp;
 
-        setCurrentMessageID(currentMessageID + 2);
-        appendToMessages(serverMessageResponse);
+        // // Add a new message with the initial status
+        // const serverMessageResponse = {
+        //   type: "in",
+        //   message: axiosResponse.data.message,
+        //   time: axiosResponse.data.timestamp,
+        //   clientID: currentMessageID + 1
+        // };
 
-        // play our sound
-        audioRef.current.play();
+        // setCurrentMessageID(currentMessageID + 2);
+        // appendToMessages(serverMessageResponse);
+
+        // // play our sound
+        // audioRef.current.play();
 
         // change check mark of send message to green
-        setNewMessageSuccess(setMessages, {...newMessage, time: serverMessageResponse.time});
+        setNewMessageSuccess(setMessages, { ...newMessage, time: timestamp });
       }catch(e){
+        console.error(e);
         setNewMessageError(setMessages, {...newMessage, time: "error"});
       }
 
