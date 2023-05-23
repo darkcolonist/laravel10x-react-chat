@@ -7,21 +7,21 @@ export default ({mode}) => {
   process.env = {...process.env, ...loadEnv(mode, process.cwd())};
 
   return defineConfig({
-    server: {
-      host: true,
-      hmr: {
-        host: process.env.VITE_DEV_URL,
-      },
+    // server: {
+    //   host: true,
+    //   hmr: {
+    //     host: process.env.VITE_DEV_URL,
+    //   },
 
-      /**
-       * the watch options below should be enabled if working behind a
-       * docker instance
-       */
-      // watch: {
-      //   usePolling: true,
-      //   interval: 1000,
-      // },
-    },
+    //   /**
+    //    * the watch options below should be enabled if working behind a
+    //    * docker instance
+    //    */
+    //   // watch: {
+    //   //   usePolling: true,
+    //   //   interval: 1000,
+    //   // },
+    // },
     plugins: [
       laravel(['resources/js/bootstrap.jsx']),
       react(),
