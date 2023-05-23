@@ -213,5 +213,7 @@ return [
     ])->toArray(),
 
   'widget_max_messages' => env('WIDGET_MAX_MESSAGES', 10),
-
+  'cache_max_messages_per_session' => env('CACHE_MAX_MESSAGES_PER_SESSION', 10),
+  'cache_messages_expiry' => env('CACHE_MESSAGES_EXPIRY', 3600),
+  'long_polling_max_duration' => env('LONG_POLLING_MAX_DURATION', 30),
 ];

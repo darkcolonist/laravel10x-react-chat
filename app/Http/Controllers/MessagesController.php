@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\ConversationFacade;
 use App\Facades\FMLFacade;
 use Illuminate\Http\Request;
 
@@ -9,12 +10,21 @@ class MessagesController extends Controller
 {
   public function send()
   {
-    return response()->json([
-      'postdata' => request()->all(),
-      'message' => FMLFacade::random(),
-      'timestamp' => date("r")
-      // ], 400); // force error test
-    ], 200);
+    ConversationFacade::send(request()->get('message'), session()->getId());
+
+    return response()->json(0, 200);
+  }
+
+  public function fetch()
+  {
+    $lastMessage = ConversationFacade::fetch(session()->getId());
+    return response()->json($lastMessage, 200);
+  }
+
+  public function history()
+  {
+    $messages = ConversationFacade::history(session()->getId());
+    return response()->json($messages, 200);
   }
 
   /**
