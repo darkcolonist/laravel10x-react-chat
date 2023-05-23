@@ -224,7 +224,7 @@ export default function(){
 
     if (newMessage.type === "out") {
       try{
-        const axiosResponse = await axios.post('api/message', newMessage);
+        const axiosResponse = await axios.post('message/send', newMessage);
         // console.info(axiosResponse.data.message);
 
         // Add a new message with the initial status

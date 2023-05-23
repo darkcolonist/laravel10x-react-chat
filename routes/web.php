@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('react');
 });
+
+Route::prefix('message')->group(function(){
+  Route::post('send', [App\Http\Controllers\MessagesController::class, 'send']);
+});
