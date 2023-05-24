@@ -1,4 +1,5 @@
 let fetchLatestEnabled = false;
+let fetchLatestLastMessageID = 1;
 
 export function startFetchLatest(callback){
   console.info('fetchLatest poller started');
@@ -11,12 +12,23 @@ export function stopFetchLatest(){
   fetchLatestEnabled = false;
 }
 
+export function setFetchLatestLastMessageID(lastMessageID){
+  fetchLatestLastMessageID = lastMessageID;
+}
+
 async function fetchLatest(callback){
   // Stop polling if the 'stopPolling' flag is set to true
   if(!fetchLatestEnabled) return;
 
   try {
-    const response = await axios.post('message/fetch');
+
+    const postParams = {
+      lastID: fetchLatestLastMessageID
+    };
+
+    console.info(postParams);
+
+    const response = await axios.post('message/fetch', postParams);
 
     // Process the response or perform any required actions
     // Call the callback function if it's provided and is a function

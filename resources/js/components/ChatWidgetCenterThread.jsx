@@ -8,7 +8,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { TransitionGroup } from "react-transition-group";
-import { startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
+import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
+import ArrayHelper from "../helpers/ArrayHelper";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
@@ -118,7 +119,7 @@ export default function(){
   ];
 
   const [messages,setMessages] = React.useState([]);
-  const [currentMessageID,setCurrentMessageID] = React.useState(1);
+  const [sendingMessageID,setSendingMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
   const [isFormDisabled, setIsFormDisabled] = React.useState(true);
   const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
@@ -134,7 +135,7 @@ export default function(){
   React.useEffect(() => {
     if(messageHistoryLoaded){
       // Start the long polling loop
-      startFetchLatest(newMessageReceivedFromServer);
+      startFetchLatest(newMessagesReceivedFromServer);
       setIsFormDisabled(false);
     }else{
       stopFetchLatest();
@@ -165,12 +166,13 @@ export default function(){
   const fetchMessageHistory = async () => {
     const { data } = await axios.post('message/history');
 
-    if(data){
+    if (ArrayHelper.isNonEmptyArray(data)) {
       data.forEach((newMessage) => {
         const formattedMessage = formatMessage(newMessage);
         appendToMessages(formattedMessage);
       });
 
+      setFetchLatestLastMessageID(data[data.length - 1].id);
       setMessageHistoryLoaded(true);
     }
   }
@@ -179,7 +181,7 @@ export default function(){
     setMessages((prevMessages) => {
       const updatedMessagesCopy = [...prevMessages];
       const messageIndex = updatedMessagesCopy.findIndex(
-        (message) => message.clientID === theMessage.clientID
+        (message) => message.sendingMessageID === theMessage.sendingMessageID
       );
       if (messageIndex !== -1) {
         // Update the status of the message
@@ -196,7 +198,7 @@ export default function(){
     setMessages((prevMessages) => {
       const updatedMessagesCopy = [...prevMessages];
       const messageIndex = updatedMessagesCopy.findIndex(
-        (message) => message.clientID === theMessage.clientID
+        (message) => message.sendingMessageID === theMessage.sendingMessageID
       );
       if (messageIndex !== -1) {
         // Update the status of the message
@@ -210,16 +212,15 @@ export default function(){
   }
 
   const appendToMessages = (newMessageObject) => {
-    // setMessages((prevMessages) => {
-    //   // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
-    //   if (prevMessages.length > WIDGET_MAX_MESSAGES) {
-    //     // Remove the first item from the array
-    //     prevMessages.shift();
-    //   }
-    //   return [...prevMessages, newMessageObject];
-    // });
-
     setMessages((prevMessages) => {
+      // Check if the message ID already exists in the messages array
+      // const isDuplicate = prevMessages.some((message) => message.id === newMessageObject.id);
+
+      // if (isDuplicate) {
+      //   // Message with duplicate ID already exists, return the current messages array
+      //   return prevMessages;
+      // }
+
       // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
       if (prevMessages.length > WIDGET_MAX_MESSAGES) {
         // Calculate the number of excess items
@@ -230,22 +231,31 @@ export default function(){
       }
       return [...prevMessages, newMessageObject];
     });
-
   }
 
   const formatMessage = (message) => {
-    message.type = message.direction;
-    message.time = message.timestamp;
+    if (typeof message === 'object' && message !== null && 'direction' in message)
+      message.type = message.direction;
+
+    if (typeof message === 'object' && message !== null && 'timestamp' in message)
+      message.time = message.timestamp;
+
     return message;
   }
 
-  const newMessageReceivedFromServer = (newMessage) => {
-    if (Object.keys(newMessage).length === 0) return;
+  const newMessagesReceivedFromServer = (newMessages) => {
+    if(ArrayHelper.isNonEmptyArray(newMessages))
+    {
+      newMessages.forEach((message) => {
+        const formattedMessage = formatMessage(message);
+        appendToMessages(formattedMessage);
+      });
 
-    appendToMessages(formatMessage(newMessage));
+      setFetchLatestLastMessageID(newMessages[newMessages.length-1].id);
 
-    // play our sound
-    playAlertSound();
+      // play our sound
+      playAlertSound();
+    }
   }
 
   const playAlertSound = () => {
@@ -255,9 +265,9 @@ export default function(){
 
   const submitMessageToServer = async (newMessage) => {
     newMessage["status"] = "sending";
-    newMessage["clientID"] = currentMessageID;
+    newMessage["sendingMessageID"] = sendingMessageID;
 
-    setCurrentMessageID(currentMessageID+1);
+    setSendingMessageID(sendingMessageID+1);
     appendToMessages(newMessage);
 
     if (newMessage.type === "out") {

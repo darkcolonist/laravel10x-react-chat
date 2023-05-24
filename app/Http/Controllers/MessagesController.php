@@ -10,16 +10,14 @@ class MessagesController extends Controller
 {
   public function send()
   {
-    ConversationFacade::send(request()->get('message'), session()->getId());
+    $message = ConversationFacade::send(request()->get('message'), session()->getId());
 
-    return response()->json([
-      "timestamp" => date("r")
-    ], 200);
+    return response()->json($message, 200);
   }
 
   public function fetch()
   {
-    $lastMessage = ConversationFacade::fetch(session()->getId());
+    $lastMessage = ConversationFacade::fetch(session()->getId(), request()->get('lastID'));
     return response()->json($lastMessage, 200);
   }
 
