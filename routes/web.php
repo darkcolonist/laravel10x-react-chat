@@ -19,6 +19,6 @@ Route::get('/', function () {
 
 Route::prefix('message')->group(function(){
   Route::post('send', [App\Http\Controllers\MessagesController::class, 'send']);
-  Route::get('history', [App\Http\Controllers\MessagesController::class, 'history']);
-  Route::get('fetch', [App\Http\Controllers\MessagesController::class, 'fetch']);
+  Route::post('history', [App\Http\Controllers\MessagesController::class, 'history']);
+  Route::post('fetch', [App\Http\Controllers\MessagesController::class, 'fetch']);
 });

@@ -8,6 +8,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { TransitionGroup } from "react-transition-group";
+import { startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
@@ -120,6 +121,7 @@ export default function(){
   const [currentMessageID,setCurrentMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
   const [isFormDisabled, setIsFormDisabled] = React.useState(false);
+  const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
 
   const scrollToBottom = () => {
     // Scroll to the bottom of the list
@@ -130,14 +132,9 @@ export default function(){
 
   React.useEffect(() => {
     setMessages(messageSamples); // for testing and development only
-  },[]);
+    // Start the long polling loop
+    startFetchLatest(newMessageReceivedFromServer);
 
-  // // the transition already handles this.
-  // React.useEffect(() => {
-  //   scrollToBottom();
-  // }, [messages]);
-
-  React.useEffect(() => {
     // Function to handle window resize event
     const handleResize = () => {
       setListHeight(getListHeight()); // Update the list height when window is resized
@@ -149,26 +146,9 @@ export default function(){
     // Clean up the event listener when component is unmounted
     return () => {
       window.removeEventListener('resize', handleResize);
+      stopFetchLatest();
     };
   }, []);
-
-  // const updateMessage = (clientMessageID, updates) => {
-  //   // Retrieve the current state array
-  //   const messagesCopy = [...messages];
-
-  //   // Find the specific item in the copied array
-  //   const messageToUpdate = messagesCopy.find((message) => message.clientID === clientMessageID);
-
-  //   console.info(messagesCopy);
-
-  //   if (messageToUpdate) {
-  //     // Update the desired property or properties of the item
-  //     messageToUpdate.status = 'sent';
-
-  //     // Set the modified array back to the state
-  //     setMessages(messagesCopy);
-  //   }
-  // }
 
   const setNewMessageSuccess = (setMessages, theMessage) => {
     setMessages((prevMessages) => {
@@ -211,8 +191,24 @@ export default function(){
         // Remove the first item from the array
         prevMessages.shift();
       }
-      return [...prevMessages, newMessageObject]
+      return [...prevMessages, newMessageObject];
     });
+  }
+
+  const newMessageReceivedFromServer = (newMessage) => {
+    if (Object.keys(newMessage).length === 0) return;
+    newMessage.type = newMessage.direction;
+    newMessage.time = newMessage.timestamp;
+
+    appendToMessages(newMessage);
+
+    // play our sound
+    playAlertSound();
+  }
+
+  const playAlertSound = () => {
+    if(shouldPlaySound)
+      audioRef.current.play();
   }
 
   const submitMessageToServer = async (newMessage) => {
@@ -228,20 +224,6 @@ export default function(){
         // console.info(axiosResponse.data.message);
 
         const timestamp = axiosResponse.data.timestamp;
-
-        // // Add a new message with the initial status
-        // const serverMessageResponse = {
-        //   type: "in",
-        //   message: axiosResponse.data.message,
-        //   time: axiosResponse.data.timestamp,
-        //   clientID: currentMessageID + 1
-        // };
-
-        // setCurrentMessageID(currentMessageID + 2);
-        // appendToMessages(serverMessageResponse);
-
-        // // play our sound
-        // audioRef.current.play();
 
         // change check mark of send message to green
         setNewMessageSuccess(setMessages, { ...newMessage, time: timestamp });

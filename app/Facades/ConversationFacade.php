@@ -2,7 +2,7 @@
 namespace App\Facades;
 
 use Illuminate\Support\Facades\Cache;
-// use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ConversationFacade{
@@ -12,7 +12,7 @@ class ConversationFacade{
 
     // fetch response
     // $totalMessagesInCache = self::addToCache(FMLFacade::random(), "in", $conversationID);
-    $totalMessagesInCache = self::addToCache(Str::uuid(), "in", $conversationID);
+    $totalMessagesInCache = self::addToCache("[".uniqid()."] response for ".$message, "in", $conversationID);
     return $totalMessagesInCache;
   }
 
@@ -72,6 +72,7 @@ class ConversationFacade{
    */
   static function fetch($conversationID)
   {
+    // Log::channel('appdebug')->info("fetch poller started by ".session()->getId());
     $startTime = time();
     $timeout = config("app.long_polling_max_duration"); // Timeout in seconds
 
@@ -79,8 +80,10 @@ class ConversationFacade{
       // Perform your operations here
       $lastMessage = Cache::pull(self::getCacheKeyLatest($conversationID), false);
 
-      if($lastMessage)
+      if($lastMessage){
+        // Log::channel('appdebug')->info($lastMessage["message"] . " has been pulled from cache");
         return $lastMessage;
+      }
 
       // Check if the time limit has exceeded
       $elapsedTime = time() - $startTime;
