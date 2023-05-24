@@ -81,7 +81,7 @@ class ConversationFacade{
       $lastMessage = Cache::pull(self::getCacheKeyLatest($conversationID), false);
 
       if($lastMessage){
-        // Log::channel('appdebug')->info($lastMessage["message"] . " has been pulled from cache");
+        Log::channel('appdebug')->info($lastMessage["message"] . " has been pulled from cache");
         return $lastMessage;
       }
 

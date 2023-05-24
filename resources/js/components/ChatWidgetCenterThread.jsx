@@ -120,8 +120,9 @@ export default function(){
   const [messages,setMessages] = React.useState([]);
   const [currentMessageID,setCurrentMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
-  const [isFormDisabled, setIsFormDisabled] = React.useState(false);
+  const [isFormDisabled, setIsFormDisabled] = React.useState(true);
   const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
+  const [messageHistoryLoaded,setMessageHistoryLoaded] = React.useState(false);
 
   const scrollToBottom = () => {
     // Scroll to the bottom of the list
@@ -131,9 +132,18 @@ export default function(){
   }
 
   React.useEffect(() => {
+    if(messageHistoryLoaded){
+      // Start the long polling loop
+      startFetchLatest(newMessageReceivedFromServer);
+      setIsFormDisabled(false);
+    }else{
+      stopFetchLatest();
+      setIsFormDisabled(true);
+    }
+  },[messageHistoryLoaded]);
+
+  React.useEffect(() => {
     setMessages(messageSamples); // for testing and development only
-    // Start the long polling loop
-    startFetchLatest(newMessageReceivedFromServer);
 
     // Function to handle window resize event
     const handleResize = () => {
@@ -143,12 +153,27 @@ export default function(){
     // Add event listener for window resize
     window.addEventListener('resize', handleResize);
 
+    fetchMessageHistory();
+
     // Clean up the event listener when component is unmounted
     return () => {
       window.removeEventListener('resize', handleResize);
       stopFetchLatest();
     };
   }, []);
+
+  const fetchMessageHistory = async () => {
+    const { data } = await axios.post('message/history');
+
+    if(data){
+      data.forEach((newMessage) => {
+        const formattedMessage = formatMessage(newMessage);
+        appendToMessages(formattedMessage);
+      });
+
+      setMessageHistoryLoaded(true);
+    }
+  }
 
   const setNewMessageSuccess = (setMessages, theMessage) => {
     setMessages((prevMessages) => {
@@ -185,22 +210,39 @@ export default function(){
   }
 
   const appendToMessages = (newMessageObject) => {
+    // setMessages((prevMessages) => {
+    //   // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
+    //   if (prevMessages.length > WIDGET_MAX_MESSAGES) {
+    //     // Remove the first item from the array
+    //     prevMessages.shift();
+    //   }
+    //   return [...prevMessages, newMessageObject];
+    // });
+
     setMessages((prevMessages) => {
       // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
       if (prevMessages.length > WIDGET_MAX_MESSAGES) {
-        // Remove the first item from the array
-        prevMessages.shift();
+        // Calculate the number of excess items
+        const numExcessItems = prevMessages.length - WIDGET_MAX_MESSAGES;
+
+        // Remove the specified number of items from the beginning of the array
+        prevMessages.splice(0, numExcessItems);
       }
       return [...prevMessages, newMessageObject];
     });
+
+  }
+
+  const formatMessage = (message) => {
+    message.type = message.direction;
+    message.time = message.timestamp;
+    return message;
   }
 
   const newMessageReceivedFromServer = (newMessage) => {
     if (Object.keys(newMessage).length === 0) return;
-    newMessage.type = newMessage.direction;
-    newMessage.time = newMessage.timestamp;
 
-    appendToMessages(newMessage);
+    appendToMessages(formatMessage(newMessage));
 
     // play our sound
     playAlertSound();
