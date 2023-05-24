@@ -21,15 +21,15 @@ class ConversationFacade{
     return "message_". $conversationID;
   }
 
-  private static function getCacheKeyLatest($conversationID)
-  {
-    return self::getCacheKey($conversationID) . "_latest";
-  }
+  // private static function getCacheKeyLatest($conversationID)
+  // {
+  //   return self::getCacheKey($conversationID) . "_latest";
+  // }
 
-  private static function addToLatestMessageCache($messageArray, $conversationID){
-    $latestKey = self::getCacheKeyLatest($conversationID);
-    Cache::put($latestKey, $messageArray, config('app.cache_messages_expiry'));
-  }
+  // private static function addToLatestMessageCache($messageArray, $conversationID){
+  //   $latestKey = self::getCacheKeyLatest($conversationID);
+  //   Cache::put($latestKey, $messageArray, config('app.cache_messages_expiry'));
+  // }
 
   private static function addToCache($message, $type, $conversationID)
   {
@@ -58,9 +58,9 @@ class ConversationFacade{
 
     // if this is an "in" message, we will add to latest for the long
     // polling to pull later
-    if($type === 'in'){
-      self::addToLatestMessageCache($messageArray, $conversationID);
-    }
+    // if($type === 'in'){
+    //   self::addToLatestMessageCache($messageArray, $conversationID);
+    // }
 
 
     return $messageArray;
