@@ -34,6 +34,7 @@ class FetchMessageJob implements ShouldQueue
     public function handle(): void
     {
       // Log::channel("appdebug")->info($this->conversationID);
+      sleep(rand(0,5)); // for testing
       ConversationFacade::receive("[" . uniqid() . "] response for " . $this->message, $this->conversationID);
     }
 }

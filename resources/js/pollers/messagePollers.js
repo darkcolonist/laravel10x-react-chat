@@ -26,7 +26,7 @@ async function fetchLatest(callback){
       lastID: fetchLatestLastMessageID
     };
 
-    console.info(postParams);
+    // console.info(postParams);
 
     const response = await axios.post('message/fetch', postParams);
 

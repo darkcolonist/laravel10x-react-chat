@@ -119,7 +119,7 @@ export default function(){
   ];
 
   const [messages,setMessages] = React.useState([]);
-  const [sendingMessageID,setSendingMessageID] = React.useState(1);
+  const [clientSideMessageID,setClientSideMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
   const [isFormDisabled, setIsFormDisabled] = React.useState(true);
   const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
@@ -177,11 +177,13 @@ export default function(){
     setMessageHistoryLoaded(true);
   }
 
-  const setNewMessageSuccess = (setMessages, theMessage) => {
+  const setSendingMessageToSent = (setMessages, theMessage) => {
+    // console.debug(theMessage);
+
     setMessages((prevMessages) => {
       const updatedMessagesCopy = [...prevMessages];
       const messageIndex = updatedMessagesCopy.findIndex(
-        (message) => message.sendingMessageID === theMessage.sendingMessageID
+        (message) => message.clientSideMessageID === theMessage.clientSideMessageID
       );
       if (messageIndex !== -1) {
         // Update the status of the message
@@ -194,11 +196,11 @@ export default function(){
     });
   }
 
-  const setNewMessageError = (setMessages, theMessage) => {
+  const setSendingMessageToError = (setMessages, theMessage) => {
     setMessages((prevMessages) => {
       const updatedMessagesCopy = [...prevMessages];
       const messageIndex = updatedMessagesCopy.findIndex(
-        (message) => message.sendingMessageID === theMessage.sendingMessageID
+        (message) => message.clientSideMessageID === theMessage.clientSideMessageID
       );
       if (messageIndex !== -1) {
         // Update the status of the message
@@ -214,12 +216,12 @@ export default function(){
   const appendToMessages = (newMessageObject) => {
     setMessages((prevMessages) => {
       // Check if the message ID already exists in the messages array
-      // const isDuplicate = prevMessages.some((message) => message.id === newMessageObject.id);
+      const isDuplicate = prevMessages.some((message) => message.id === newMessageObject.id);
 
-      // if (isDuplicate) {
-      //   // Message with duplicate ID already exists, return the current messages array
-      //   return prevMessages;
-      // }
+      if (isDuplicate) {
+        // Message with duplicate ID already exists, return the current messages array
+        return prevMessages;
+      }
 
       // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
       if (prevMessages.length > WIDGET_MAX_MESSAGES) {
@@ -265,27 +267,23 @@ export default function(){
 
   const submitMessageToServer = async (newMessage) => {
     newMessage["status"] = "sending";
-    newMessage["sendingMessageID"] = sendingMessageID;
+    newMessage["clientSideMessageID"] = clientSideMessageID;
+    newMessage["id"] = clientSideMessageID;
 
-    setSendingMessageID(sendingMessageID+1);
+    setClientSideMessageID(clientSideMessageID+1);
     appendToMessages(newMessage);
 
-    if (newMessage.type === "out") {
-      try{
-        const axiosResponse = await axios.post('message/send', newMessage);
-        // console.info(axiosResponse.data.message);
+    try{
+      const axiosResponse = await axios.post('message/send', newMessage);
 
-        const timestamp = axiosResponse.data.timestamp;
-
-        // change check mark of send message to green
-        setNewMessageSuccess(setMessages, { ...newMessage, time: timestamp });
-      }catch(e){
-        console.error(e);
-        setNewMessageError(setMessages, {...newMessage, time: "error"});
-      }
-
-      setIsFormDisabled(false);
+      // change check mark of send message to green
+      setSendingMessageToSent(setMessages, { ...newMessage, ...axiosResponse.data });
+    }catch(e){
+      console.error(e);
+      setSendingMessageToError(setMessages, {...newMessage, time: "error"});
     }
+
+    setIsFormDisabled(false);
   }
 
   const handleSubmit = async (e) => {
