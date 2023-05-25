@@ -96,10 +96,10 @@ const MessageListItem = function (props){
 }
 
 const getListHeight = () => {
-  return window.innerHeight - 201;
+  return window.innerHeight - 225;
 }
 
-export default function(){
+export default function({shouldPlaySound}){
   const messageRef = useRef('');
   const messageListRef = useRef(null);
   const audioRef = useRef(null);
@@ -118,11 +118,16 @@ export default function(){
     // ...Array(20).fill().map((_, index) => ({ type: "out", message: `test ${index + 1}`, time: "-00:00" }))
   ];
 
+  const shouldPlaySoundRef = React.useRef(shouldPlaySound);
+  React.useEffect(() => {
+    shouldPlaySoundRef.current = shouldPlaySound;
+  }, [shouldPlaySound]);
+
   const [messages,setMessages] = React.useState([]);
   const [clientSideMessageID,setClientSideMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
   const [isFormDisabled, setIsFormDisabled] = React.useState(true);
-  const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
+  // const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
   const [messageHistoryLoaded,setMessageHistoryLoaded] = React.useState(false);
 
   const scrollToBottom = () => {
@@ -269,16 +274,22 @@ export default function(){
 
       setFetchLatestLastMessageID(lastMessageInList.id);
 
-      if (lastMessageInList.type === 'in')
+      if (lastMessageInList.type === 'in'){
         setIsFormDisabled(false);
+        // play our sound
+        playAlertSound();
+      }
 
-      // play our sound
-      playAlertSound();
     }
   }
 
+  // React.useEffect(() => {
+  //   // console.debug(shouldPlaySound);
+  //   playAlertSound();
+  // },[shouldPlaySound]);
+
   const playAlertSound = () => {
-    if(shouldPlaySound)
+    if(shouldPlaySoundRef.current)
       audioRef.current.play();
   }
 
