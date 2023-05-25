@@ -59,13 +59,24 @@ class ConversationFacade{
     if(count($existing) && isset($existing[count($existing) - 1]["id"]))
       $id = $existing[count($existing)-1]["id"];
 
+    $messageArray;
+    if(is_array($message)){
+      $messageArray = [
+        "id" => $id + 1,
+        "message" => $message["message"],
+        "meta" => $message["meta"],
+        "type" => $type,
+        "time" => date('r')
+      ];
+    }else{
+      $messageArray = [
+        "id" => $id + 1,
+        "message" => $message,
+        "type" => $type,
+        "time" => date('r')
+      ];
+    }
 
-    $messageArray = [
-      "id" => $id + 1,
-      "message" => $message,
-      "type" => $type,
-      "time" => date('r')
-    ];
     $existing[] = $messageArray;
 
     Cache::put($key, $existing, config('app.cache_messages_expiry'));

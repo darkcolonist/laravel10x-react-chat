@@ -215,8 +215,20 @@ export default function(){
 
   const appendToMessages = (newMessageObject) => {
     setMessages((prevMessages) => {
-      // Check if the message ID already exists in the messages array
-      const isDuplicate = prevMessages.some((message) => message.id === newMessageObject.id);
+      // this is to prevent showing the message you already sent in
+      // your present chatbox
+      const isDuplicate = prevMessages.some((message) => {
+        if (
+          newMessageObject.meta &&
+          typeof newMessageObject.meta === 'object' &&
+          newMessageObject.meta.clientSideMessageID !== undefined &&
+          message.clientSideMessageID !== undefined
+        ) {
+          // console.debug(`${message.clientSideMessageID} === ${newMessageObject.meta.clientSideMessageID}`);
+          return message.clientSideMessageID === newMessageObject.meta.clientSideMessageID;
+        }
+        return false;
+      });
 
       if (isDuplicate) {
         // Message with duplicate ID already exists, return the current messages array

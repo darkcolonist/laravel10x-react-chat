@@ -10,7 +10,12 @@ class MessagesController extends Controller
 {
   public function send()
   {
-    $message = ConversationFacade::send(request()->get('message'), session()->getId());
+    $message = ConversationFacade::send([
+      "message" => request()->get('message'),
+      "meta" => [
+        "clientSideMessageID" => request()->get('clientSideMessageID')
+      ]
+    ], session()->getId());
 
     return response()->json($message, 200);
   }
