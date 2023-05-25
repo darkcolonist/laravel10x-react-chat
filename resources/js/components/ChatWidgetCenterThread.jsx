@@ -265,7 +265,12 @@ export default function(){
         appendToMessages(formattedMessage);
       });
 
-      setFetchLatestLastMessageID(newMessages[newMessages.length-1].id);
+      const lastMessageInList = newMessages[newMessages.length - 1];
+
+      setFetchLatestLastMessageID(lastMessageInList.id);
+
+      if (lastMessageInList.type === 'in')
+        setIsFormDisabled(false);
 
       // play our sound
       playAlertSound();
@@ -295,7 +300,8 @@ export default function(){
       setSendingMessageToError(setMessages, {...newMessage, time: "error"});
     }
 
-    setIsFormDisabled(false);
+    if(!ONE_MESSAGE_AT_A_TIME)
+      setIsFormDisabled(false);
   }
 
   const handleSubmit = async (e) => {

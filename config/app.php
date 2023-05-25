@@ -218,5 +218,6 @@ return [
   'long_polling_max_duration' => env('LONG_POLLING_MAX_DURATION', 30),
   'third_party_messages_api_enabled' => env('THIRD_PARTY_MESSAGES_API_ENABLED', false),
   'receive_job_delay_max_seconds' => env('RECEIVE_JOB_DELAY_MAX_SECONDS', 5),
+  'one_message_at_a_time' => env('ONE_MESSAGE_AT_A_TIME', true),
   // 'long_polling_max_duration' => env('LONG_POLLING_MAX_DURATION', 2),
 ];

@@ -7,6 +7,7 @@
       const APP_URL="{{config("app.url")}}";
       const APP_VISITOR="{{request()->getClientIP()}}";
       const WIDGET_MAX_MESSAGES="{{config("app.widget_max_messages")}}";
+      const ONE_MESSAGE_AT_A_TIME="{{config("app.one_message_at_a_time")}}";
       const PAGE_LOAD="{{date("r")}}";
     </script>
 
