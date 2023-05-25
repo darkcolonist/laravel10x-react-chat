@@ -1,6 +1,7 @@
 <?php
 namespace App\Facades;
 
+use App\Jobs\FetchMessageJob;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -8,12 +9,25 @@ use Illuminate\Support\Str;
 class ConversationFacade{
   static function send($message, $conversationID)
   {
-    self::addToCache($message, "out", $conversationID);
+    $message = self::addToCache($message, "out", $conversationID);
 
     // fetch response
     // $totalMessagesInCache = self::addToCache(FMLFacade::random(), "in", $conversationID);
-    $totalMessagesInCache = self::addToCache("[".uniqid()."] response for ".$message, "in", $conversationID);
-    return $totalMessagesInCache;
+    // $totalMessagesInCache = self::addToCache("[".uniqid()."] response for ".$message, "in", $conversationID);
+    FetchMessageJob::dispatch($message, $conversationID)->onQueue('default');
+    return $message;
+  }
+
+  static function receive($message, $conversationID){
+    $message = self::addToCache($message, "in", $conversationID);
+
+    Log::channel("appdebug")->info(json_encode([
+      $message,
+      $conversationID,
+      'added to cache'
+    ]));
+
+    return $message;
   }
 
   private static function getCacheKey($conversationID)
