@@ -7,5 +7,15 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## Laravel10x + React + Vite
-my personal bootstrapper
+## Laravel10x + React + Vite Chat Application
+### database queue
+```
+.env
+  DB_DATABASE=/absolute/path/to/database.sqlite
+  QUEUE_CONNECTION=database
+
+bash
+  touch /absolute/path/to/database.sqlite
+  php artisan migrate
+  php artisan queue:work
+```

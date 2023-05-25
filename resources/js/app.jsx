@@ -1,16 +1,13 @@
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import ChatWidget from './widgets/ChatWidget';
+import defaultTheme from './themes/defaultTheme';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
+const theme = defaultTheme;
 
 export default function() {
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <ChatWidget />
     </ThemeProvider>

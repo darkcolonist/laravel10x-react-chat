@@ -8,6 +8,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { TransitionGroup } from "react-transition-group";
+import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
+import ArrayHelper from "../helpers/ArrayHelper";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
@@ -94,10 +96,10 @@ const MessageListItem = function (props){
 }
 
 const getListHeight = () => {
-  return window.innerHeight - 201;
+  return window.innerHeight - 225;
 }
 
-export default function(){
+export default function({shouldPlaySound}){
   const messageRef = useRef('');
   const messageListRef = useRef(null);
   const audioRef = useRef(null);
@@ -116,10 +118,17 @@ export default function(){
     // ...Array(20).fill().map((_, index) => ({ type: "out", message: `test ${index + 1}`, time: "-00:00" }))
   ];
 
+  const shouldPlaySoundRef = React.useRef(shouldPlaySound);
+  React.useEffect(() => {
+    shouldPlaySoundRef.current = shouldPlaySound;
+  }, [shouldPlaySound]);
+
   const [messages,setMessages] = React.useState([]);
-  const [currentMessageID,setCurrentMessageID] = React.useState(1);
+  const [clientSideMessageID,setClientSideMessageID] = React.useState(1);
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
-  const [isFormDisabled, setIsFormDisabled] = React.useState(false);
+  const [isFormDisabled, setIsFormDisabled] = React.useState(true);
+  // const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
+  const [messageHistoryLoaded,setMessageHistoryLoaded] = React.useState(false);
 
   const scrollToBottom = () => {
     // Scroll to the bottom of the list
@@ -129,15 +138,19 @@ export default function(){
   }
 
   React.useEffect(() => {
-    setMessages(messageSamples); // for testing and development only
-  },[]);
-
-  // // the transition already handles this.
-  // React.useEffect(() => {
-  //   scrollToBottom();
-  // }, [messages]);
+    if(messageHistoryLoaded){
+      // Start the long polling loop
+      startFetchLatest(newMessagesReceivedFromServer);
+      setIsFormDisabled(false);
+    }else{
+      stopFetchLatest();
+      setIsFormDisabled(true);
+    }
+  },[messageHistoryLoaded]);
 
   React.useEffect(() => {
+    setMessages(messageSamples); // for testing and development only
+
     // Function to handle window resize event
     const handleResize = () => {
       setListHeight(getListHeight()); // Update the list height when window is resized
@@ -146,35 +159,36 @@ export default function(){
     // Add event listener for window resize
     window.addEventListener('resize', handleResize);
 
+    fetchMessageHistory();
+
     // Clean up the event listener when component is unmounted
     return () => {
       window.removeEventListener('resize', handleResize);
+      stopFetchLatest();
     };
   }, []);
 
-  // const updateMessage = (clientMessageID, updates) => {
-  //   // Retrieve the current state array
-  //   const messagesCopy = [...messages];
+  const fetchMessageHistory = async () => {
+    const { data } = await axios.post('message/history');
 
-  //   // Find the specific item in the copied array
-  //   const messageToUpdate = messagesCopy.find((message) => message.clientID === clientMessageID);
+    if (ArrayHelper.isNonEmptyArray(data)) {
+      data.forEach((newMessage) => {
+        const formattedMessage = formatMessage(newMessage);
+        appendToMessages(formattedMessage);
+      });
 
-  //   console.info(messagesCopy);
+      setFetchLatestLastMessageID(data[data.length - 1].id);
+    }
+    setMessageHistoryLoaded(true);
+  }
 
-  //   if (messageToUpdate) {
-  //     // Update the desired property or properties of the item
-  //     messageToUpdate.status = 'sent';
+  const setSendingMessageToSent = (setMessages, theMessage) => {
+    // console.debug(theMessage);
 
-  //     // Set the modified array back to the state
-  //     setMessages(messagesCopy);
-  //   }
-  // }
-
-  const setNewMessageSuccess = (setMessages, theMessage) => {
     setMessages((prevMessages) => {
       const updatedMessagesCopy = [...prevMessages];
       const messageIndex = updatedMessagesCopy.findIndex(
-        (message) => message.clientID === theMessage.clientID
+        (message) => message.clientSideMessageID === theMessage.clientSideMessageID
       );
       if (messageIndex !== -1) {
         // Update the status of the message
@@ -187,11 +201,11 @@ export default function(){
     });
   }
 
-  const setNewMessageError = (setMessages, theMessage) => {
+  const setSendingMessageToError = (setMessages, theMessage) => {
     setMessages((prevMessages) => {
       const updatedMessagesCopy = [...prevMessages];
       const messageIndex = updatedMessagesCopy.findIndex(
-        (message) => message.clientID === theMessage.clientID
+        (message) => message.clientSideMessageID === theMessage.clientSideMessageID
       );
       if (messageIndex !== -1) {
         // Update the status of the message
@@ -206,49 +220,99 @@ export default function(){
 
   const appendToMessages = (newMessageObject) => {
     setMessages((prevMessages) => {
+      // this is to prevent showing the message you already sent in
+      // your present chatbox
+      const isDuplicate = prevMessages.some((message) => {
+        if (
+          newMessageObject.meta &&
+          typeof newMessageObject.meta === 'object' &&
+          newMessageObject.meta.clientSideMessageID !== undefined &&
+          message.clientSideMessageID !== undefined
+        ) {
+          // console.debug(`${message.clientSideMessageID} === ${newMessageObject.meta.clientSideMessageID}`);
+          return message.clientSideMessageID === newMessageObject.meta.clientSideMessageID;
+        }
+        return false;
+      });
+
+      if (isDuplicate) {
+        // Message with duplicate ID already exists, return the current messages array
+        return prevMessages;
+      }
+
       // Check if the array length exceeds {WIDGET_MAX_MESSAGES}
       if (prevMessages.length > WIDGET_MAX_MESSAGES) {
-        // Remove the first item from the array
-        prevMessages.shift();
+        // Calculate the number of excess items
+        const numExcessItems = prevMessages.length - WIDGET_MAX_MESSAGES;
+
+        // Remove the specified number of items from the beginning of the array
+        prevMessages.splice(0, numExcessItems + 1);
       }
-      return [...prevMessages, newMessageObject]
+      return [...prevMessages, newMessageObject];
     });
+  }
+
+  const formatMessage = (message) => {
+    if (typeof message === 'object' && message !== null && 'direction' in message)
+      message.type = message.direction;
+
+    if (typeof message === 'object' && message !== null && 'timestamp' in message)
+      message.time = message.timestamp;
+
+    return message;
+  }
+
+  const newMessagesReceivedFromServer = (newMessages) => {
+    if(ArrayHelper.isNonEmptyArray(newMessages))
+    {
+      newMessages.forEach((message) => {
+        const formattedMessage = formatMessage(message);
+        appendToMessages(formattedMessage);
+      });
+
+      const lastMessageInList = newMessages[newMessages.length - 1];
+
+      setFetchLatestLastMessageID(lastMessageInList.id);
+
+      if (lastMessageInList.type === 'in'){
+        setIsFormDisabled(false);
+        // play our sound
+        playAlertSound();
+      }
+
+    }
+  }
+
+  // React.useEffect(() => {
+  //   // console.debug(shouldPlaySound);
+  //   playAlertSound();
+  // },[shouldPlaySound]);
+
+  const playAlertSound = () => {
+    if(shouldPlaySoundRef.current)
+      audioRef.current.play();
   }
 
   const submitMessageToServer = async (newMessage) => {
     newMessage["status"] = "sending";
-    newMessage["clientID"] = currentMessageID;
+    newMessage["clientSideMessageID"] = clientSideMessageID;
+    newMessage["id"] = clientSideMessageID;
 
-    setCurrentMessageID(currentMessageID+1);
+    setClientSideMessageID(clientSideMessageID+1);
     appendToMessages(newMessage);
 
-    if (newMessage.type === "out") {
-      try{
-        const axiosResponse = await axios.post('message/send', newMessage);
-        // console.info(axiosResponse.data.message);
+    try{
+      const axiosResponse = await axios.post('message/send', newMessage);
 
-        // Add a new message with the initial status
-        const serverMessageResponse = {
-          type: "in",
-          message: axiosResponse.data.message,
-          time: axiosResponse.data.timestamp,
-          clientID: currentMessageID + 1
-        };
-
-        setCurrentMessageID(currentMessageID + 2);
-        appendToMessages(serverMessageResponse);
-
-        // play our sound
-        audioRef.current.play();
-
-        // change check mark of send message to green
-        setNewMessageSuccess(setMessages, {...newMessage, time: serverMessageResponse.time});
-      }catch(e){
-        setNewMessageError(setMessages, {...newMessage, time: "error"});
-      }
-
-      setIsFormDisabled(false);
+      // change check mark of send message to green
+      setSendingMessageToSent(setMessages, { ...newMessage, ...axiosResponse.data });
+    }catch(e){
+      console.error(e);
+      setSendingMessageToError(setMessages, {...newMessage, time: "error"});
     }
+
+    if(!ONE_MESSAGE_AT_A_TIME)
+      setIsFormDisabled(false);
   }
 
   const handleSubmit = async (e) => {
