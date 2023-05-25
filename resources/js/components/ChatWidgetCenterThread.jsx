@@ -241,7 +241,7 @@ export default function(){
         const numExcessItems = prevMessages.length - WIDGET_MAX_MESSAGES;
 
         // Remove the specified number of items from the beginning of the array
-        prevMessages.splice(0, numExcessItems);
+        prevMessages.splice(0, numExcessItems + 1);
       }
       return [...prevMessages, newMessageObject];
     });
