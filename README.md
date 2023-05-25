@@ -10,10 +10,12 @@
 ## Laravel10x + React + Vite Chat Application
 ### database queue
 ```
-bash
-  touch storage/database.sqlite
-  php artisan queue:work
-
 .env
+  DB_DATABASE=/absolute/path/to/database.sqlite
   QUEUE_CONNECTION=database
+
+bash
+  touch /absolute/path/to/database.sqlite
+  php artisan migrate
+  php artisan queue:work
 ```
