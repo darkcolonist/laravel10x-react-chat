@@ -173,8 +173,8 @@ export default function(){
       });
 
       setFetchLatestLastMessageID(data[data.length - 1].id);
-      setMessageHistoryLoaded(true);
     }
+    setMessageHistoryLoaded(true);
   }
 
   const setNewMessageSuccess = (setMessages, theMessage) => {
