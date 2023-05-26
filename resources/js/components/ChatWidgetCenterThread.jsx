@@ -10,6 +10,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { TransitionGroup } from "react-transition-group";
 import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
 import ArrayHelper from "../helpers/ArrayHelper";
+import { v4 as uuid } from 'uuid';
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
@@ -125,7 +126,7 @@ export default function({shouldPlaySound, prependToDebugLog: addLog}){
   }, [shouldPlaySound]);
 
   const [messages,setMessages] = React.useState([]);
-  const [clientSideMessageID,setClientSideMessageID] = React.useState(1);
+  const [clientSideMessageID,setClientSideMessageID] = React.useState(uuid());
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
   const [isFormDisabled, setIsFormDisabled] = React.useState(true);
   // const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
@@ -220,6 +221,8 @@ export default function({shouldPlaySound, prependToDebugLog: addLog}){
   }
 
   const appendToMessages = (newMessageObject) => {
+    // console.info('appending', newMessageObject)
+
     if(ONE_MESSAGE_AT_A_TIME && newMessageObject.type === "out")
       setIsFormDisabled(true);
 
@@ -236,7 +239,9 @@ export default function({shouldPlaySound, prependToDebugLog: addLog}){
           // console.debug(`${message.clientSideMessageID} === ${newMessageObject.meta.clientSideMessageID}`);
           const duplicateResult = message.clientSideMessageID === newMessageObject.meta.clientSideMessageID;
 
-          addLog(`skip\n${message.message}`);
+          if(duplicateResult){
+            addLog(`skip\n${message.message}\n${message.clientSideMessageID.slice(0,4)}`);
+          }
 
           return duplicateResult;
         }
@@ -256,6 +261,7 @@ export default function({shouldPlaySound, prependToDebugLog: addLog}){
         // Remove the specified number of items from the beginning of the array
         prevMessages.splice(0, numExcessItems + 1);
       }
+
       return [...prevMessages, newMessageObject];
     });
   }
@@ -276,7 +282,7 @@ export default function({shouldPlaySound, prependToDebugLog: addLog}){
       newMessages.forEach((message) => {
         const formattedMessage = formatMessage(message);
         // addLog(JSON.stringify({ newMessages }, null, 2));
-        addLog(`server\n${message.message} ${message.type}`)
+        // addLog(`server\n${message.message} ${message.type}`)
         appendToMessages(formattedMessage);
       });
 
@@ -308,7 +314,8 @@ export default function({shouldPlaySound, prependToDebugLog: addLog}){
     newMessage["clientSideMessageID"] = clientSideMessageID;
     newMessage["id"] = clientSideMessageID;
 
-    setClientSideMessageID(clientSideMessageID+1);
+    // reset the clientSideMessageID
+    setClientSideMessageID(uuid());
     appendToMessages(newMessage);
 
     try{
