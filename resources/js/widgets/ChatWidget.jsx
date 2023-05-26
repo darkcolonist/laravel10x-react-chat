@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -7,8 +7,11 @@ import ChatWidgetCenterThread from '../components/ChatWidgetCenterThread';
 import ChatWidgetProfileCard from '../components/ChatWidgetProfileCard';
 import { blue, red } from '@mui/material/colors';
 import SessionHelper from '../helpers/SessionHelper';
+import DateTimeHelper from '../helpers/DateTimeHelper';
 import { Chip, Typography } from '@mui/material';
 import ChatWidgetFooterActions from '../components/ChatWidgetFooterActions';
+import EnvHelper from '../helpers/EnvHelper';
+import DebugLogContainer from '../components/DebugLogContainer';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -18,9 +21,29 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
+const MAX_DEBUG_LOGS = 20;
+
 export default function() {
 
   const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
+  const [debugLog,setDebugLog] = React.useState([]);
+
+  React.useEffect(() => {
+    appendToDebugLog('logging 1');
+    appendToDebugLog('logging 2');
+  },[]);
+
+  const appendToDebugLog = (log) => {
+    if(!EnvHelper.isDebugMode()) return;
+
+    const timestamp = DateTimeHelper.currentTime();
+
+    setDebugLog((prevLog) => {
+      const newLogItem = { timestamp, log };
+      const newLog = [...prevLog, newLogItem];
+      return newLog.slice(-MAX_DEBUG_LOGS); // Truncate the array to the last 20 logs
+    });
+  };
 
   const headerFooter = <React.Fragment>
     <Typography variant='span'>{APP_NAME}</Typography>
@@ -47,7 +70,10 @@ export default function() {
               <ChatWidgetProfileCard name="FML Guy" description="The daily struggle guy" bgcolor={red[500]} />
             </Grid>
 
-            <ChatWidgetCenterThread shouldPlaySound={shouldPlaySound} />
+            <ChatWidgetCenterThread {...{
+              shouldPlaySound,
+              appendToDebugLog
+            }} />
 
             <Grid item xs={2} sx={{
               display: {
@@ -56,6 +82,10 @@ export default function() {
               }
             }}>
               <ChatWidgetProfileCard name="Operator" description="This is you" bgcolor={blue[300]} />
+
+              {EnvHelper.isDebugMode() ?
+                <DebugLogContainer log={debugLog} />
+                :null}
             </Grid>
           </Grid>
 
