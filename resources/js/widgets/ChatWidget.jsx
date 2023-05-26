@@ -21,7 +21,7 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const MAX_DEBUG_LOGS = 20;
+const MAX_DEBUG_LOGS = 10;
 
 export default function() {
 
@@ -29,19 +29,18 @@ export default function() {
   const [debugLog,setDebugLog] = React.useState([]);
 
   React.useEffect(() => {
-    appendToDebugLog('logging 1');
-    appendToDebugLog('logging 2');
+    prependToDebugLog('logging started');
   },[]);
 
-  const appendToDebugLog = (log) => {
+  const prependToDebugLog = (log) => {
     if(!EnvHelper.isDebugMode()) return;
 
     const timestamp = DateTimeHelper.currentTime();
 
     setDebugLog((prevLog) => {
       const newLogItem = { timestamp, log };
-      const newLog = [...prevLog, newLogItem];
-      return newLog.slice(-MAX_DEBUG_LOGS); // Truncate the array to the last 20 logs
+      const newLog = [newLogItem, ...prevLog];
+      return newLog.slice(0, MAX_DEBUG_LOGS); // Truncate the array to the last 20 logs
     });
   };
 
@@ -70,10 +69,12 @@ export default function() {
               <ChatWidgetProfileCard name="FML Guy" description="The daily struggle guy" bgcolor={red[500]} />
             </Grid>
 
-            <ChatWidgetCenterThread {...{
-              shouldPlaySound,
-              appendToDebugLog
-            }} />
+            <Grid item xs={12} md={8}>
+              <ChatWidgetCenterThread {...{
+                shouldPlaySound,
+                prependToDebugLog
+              }} />
+            </Grid>
 
             <Grid item xs={2} sx={{
               display: {

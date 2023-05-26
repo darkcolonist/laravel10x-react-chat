@@ -7,12 +7,13 @@ export default function({
   log
 }) {
   return (
-    <Stack spacing={0}>
+    <Stack spacing={0} className='debugLogList'>
+      {log.length ? <Typography className='debugLogTitle'>debug log</Typography> : null}
       {log.map((logitem, index) =>
         <Box key={index}>
           <Typography className='debugLogTime' variant='span'>{logitem.timestamp}</Typography>
           {' '}
-          <Typography className='debugLog' variant='span'>{logitem.log}</Typography>
+          <Typography className='debugLog' component='pre'>{logitem.log}</Typography>
         </Box>)}
     </Stack>
   );

@@ -99,7 +99,7 @@ const getListHeight = () => {
   return window.innerHeight - 225;
 }
 
-export default function({shouldPlaySound}){
+export default function({shouldPlaySound, prependToDebugLog: addLog}){
   const messageRef = useRef('');
   const messageListRef = useRef(null);
   const audioRef = useRef(null);
@@ -121,6 +121,7 @@ export default function({shouldPlaySound}){
   const shouldPlaySoundRef = React.useRef(shouldPlaySound);
   React.useEffect(() => {
     shouldPlaySoundRef.current = shouldPlaySound;
+    // addLog(JSON.stringify({shouldPlaySound}));
   }, [shouldPlaySound]);
 
   const [messages,setMessages] = React.useState([]);
@@ -219,6 +220,9 @@ export default function({shouldPlaySound}){
   }
 
   const appendToMessages = (newMessageObject) => {
+    if(ONE_MESSAGE_AT_A_TIME && newMessageObject.type === "out")
+      setIsFormDisabled(true);
+
     setMessages((prevMessages) => {
       // this is to prevent showing the message you already sent in
       // your present chatbox
@@ -230,7 +234,11 @@ export default function({shouldPlaySound}){
           message.clientSideMessageID !== undefined
         ) {
           // console.debug(`${message.clientSideMessageID} === ${newMessageObject.meta.clientSideMessageID}`);
-          return message.clientSideMessageID === newMessageObject.meta.clientSideMessageID;
+          const duplicateResult = message.clientSideMessageID === newMessageObject.meta.clientSideMessageID;
+
+          addLog(`skip\n${message.message}`);
+
+          return duplicateResult;
         }
         return false;
       });
@@ -267,6 +275,8 @@ export default function({shouldPlaySound}){
     {
       newMessages.forEach((message) => {
         const formattedMessage = formatMessage(message);
+        // addLog(JSON.stringify({ newMessages }, null, 2));
+        addLog(`server\n${message.message} ${message.type}`)
         appendToMessages(formattedMessage);
       });
 
@@ -338,7 +348,7 @@ export default function({shouldPlaySound}){
   }
 
   return (
-    <Grid item xs={12} md={8}>
+    <React.Fragment>
       <List className='messageArea' spacing={2}
         ref={messageListRef}
         sx={{
@@ -371,6 +381,6 @@ export default function({shouldPlaySound}){
             aria-label="add" component={Button} type="submit"><SendIcon /></Fab>
         </Grid>
       </Grid>
-    </Grid>
+    </React.Fragment>
   )
 }

@@ -18,17 +18,34 @@ export default createTheme({
       },
     },
 
+    MuiStack: {
+      styleOverrides: {
+        root: {
+          '&.debugLogList': {
+            height: "60vh",
+            overflowY: "scroll"
+          },
+        },
+      },
+    },
+
     MuiTypography: {
       styleOverrides: {
         root: {
           '&.debugLog': {
             fontFamily: 'monospace',
-            color: green[300]
+            color: green[300],
+            borderLeft: `5px solid ${green[900]}`,
+            paddingLeft: 5
           },
           '&.debugLogTime': {
+            borderBottom: `3px solid ${green[900]}`,
             fontFamily: 'monospace',
             color: green[700],
             fontSize: "70%"
+          },
+          '&.debugLogTitle': {
+            color: green[400]
           },
         },
       },
