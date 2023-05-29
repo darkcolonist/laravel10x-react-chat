@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import { viteCommonjs, esbuildCommonjs } from '@originjs/vite-plugin-commonjs';
 
 export default ({mode}) => {
 
@@ -26,5 +27,11 @@ export default ({mode}) => {
       laravel(['resources/js/bootstrap.jsx']),
       react(),
     ],
+
+    optimizeDeps: {
+      esbuildOptions: {
+        plugins: [esbuildCommonjs(['react-moment'])],
+      },
+    },
   });
 }

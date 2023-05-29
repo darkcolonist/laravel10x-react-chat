@@ -1,9 +1,9 @@
-import { blueGrey, green } from '@mui/material/colors';
+import { blue, blueGrey, green, lightBlue, pink } from '@mui/material/colors';
 import { createTheme } from '@mui/material/styles';
 
 export default createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'dark'
   },
   components: {
     MuiChip: {
@@ -49,6 +49,32 @@ export default createTheme({
           },
         },
       },
+
+      variants: [
+        {
+          props: { variant: "time" },
+          style: {
+            fontSize: "80%"
+          }
+        }
+      ]
     },
+
+    MuiListItem: {
+      styleOverrides:{
+        root: {
+          '&.authorIsMe' : {
+            justifyContent: "flex-end",
+            '& .statusIcon': {
+              fontSize: 15
+            }
+          },
+
+          '&.authorIsThem' : {
+            justifyContent: "flex-start"
+          }
+        }
+      }
+    }
   },
 });
