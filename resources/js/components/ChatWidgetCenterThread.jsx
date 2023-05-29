@@ -10,7 +10,6 @@ import { TransitionGroup } from "react-transition-group";
 import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
 import ArrayHelper from "../helpers/ArrayHelper";
 import uniqid from "uniqid";
-import Moment from "react-moment";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
@@ -18,7 +17,7 @@ const MessageCardContent = function(props){
   return (
     <CardContent>
       <Typography>{props.message}</Typography>
-      <Typography variant="time" title={props.time}><Moment format="h:mmA">{props.time}</Moment></Typography>
+      <Typography variant="time" title={props.time}>{props.time}</Typography>
     </CardContent>
   )
 }
