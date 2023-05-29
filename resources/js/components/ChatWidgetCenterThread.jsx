@@ -1,7 +1,6 @@
 import React, { useRef } from "react";
 import Grid from '@mui/material/Grid';
-import { Button, Card, CardContent, Collapse, Divider, Fab, List, ListItem, TextField, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { Button, CardContent, Collapse, Divider, Fab, List, ListItem, Paper, TextField, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -10,38 +9,22 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { TransitionGroup } from "react-transition-group";
 import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
 import ArrayHelper from "../helpers/ArrayHelper";
-import { v4 as uuid } from 'uuid';
+import uniqid from "uniqid";
 import Moment from "react-moment";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
-
-const MeListItemStyled = styled(ListItem)(({ theme }) => ({
-  justifyContent: "flex-end",
-  "& .MuiCard-root": {
-    // backgroundColor: theme.palette.mode === 'dark' ? theme.palette.info.dark : theme.palette.info.light,
-    backgroundColor: theme.palette.info[theme.palette.mode],
-  },
-  "& .statusIcon": {
-    fontSize: 15
-  }
-}));
-
-const OtherListItemStyled = styled(ListItem)(({ theme }) => ({
-  justifyContent: "flex-start"
-}));
 
 const MessageCardContent = function(props){
   return (
     <CardContent>
       <Typography>{props.message}</Typography>
-      {/* <TimeTypography title={props.time}><Moment>{props.time}</Moment></TimeTypography> */}
       <Typography variant="time" title={props.time}><Moment format="h:mmA">{props.time}</Moment></Typography>
     </CardContent>
   )
 }
 
 const OtherListItem = function (props) {
-  return <OtherListItemStyled>
+  return <ListItem className="authorIsThem">
     <AccountCircleIcon
       sx={{
         display: {
@@ -50,22 +33,22 @@ const OtherListItem = function (props) {
         }
       }}
     />
-    <Card>
+    <Paper>
       <MessageCardContent {...props} />
-    </Card>
-  </OtherListItemStyled>
+    </Paper>
+  </ListItem>
 }
 
 
 const MeListItem = function (props) {
-  return <MeListItemStyled>
-    <Card>
+  return <ListItem className="authorIsMe">
+    <Paper elevation={10}>
       <MessageCardContent {...props} />
-    </Card>
+    </Paper>
 
     <MessageSentStatus {...props} />
 
-  </MeListItemStyled>
+  </ListItem>
 }
 
 const MessageSentStatus = function(props){
@@ -124,7 +107,7 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
   }, [shouldPlaySound]);
 
   const [messages,setMessages] = React.useState([]);
-  const [clientSideMessageID,setClientSideMessageID] = React.useState(uuid());
+  const [clientSideMessageID,setClientSideMessageID] = React.useState(uniqid());
   const [listHeight, setListHeight] = React.useState(getListHeight()); // Initial height calculation
   const [isFormDisabled, setIsFormDisabled] = React.useState(true);
   // const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
@@ -313,7 +296,7 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
     newMessage["id"] = clientSideMessageID;
 
     // reset the clientSideMessageID
-    setClientSideMessageID(uuid());
+    setClientSideMessageID(uniqid());
     appendToMessages(newMessage);
 
     try{
