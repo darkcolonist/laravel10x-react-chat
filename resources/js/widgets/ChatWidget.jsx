@@ -23,7 +23,7 @@ const Item = styled(Paper)(({ theme }) => ({
 
 const MAX_DEBUG_LOGS = 10;
 
-export default function() {
+export default function ChatWidget() {
 
   const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
   const [debugLog,setDebugLog] = React.useState([]);

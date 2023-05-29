@@ -11,6 +11,7 @@ import { TransitionGroup } from "react-transition-group";
 import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
 import ArrayHelper from "../helpers/ArrayHelper";
 import { v4 as uuid } from 'uuid';
+import Moment from "react-moment";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
@@ -25,11 +26,6 @@ const MeListItemStyled = styled(ListItem)(({ theme }) => ({
   }
 }));
 
-const TimeTypography = styled(Typography)(({ theme }) => ({
-  fontSize: "80%",
-  opacity: .6
-}));
-
 const OtherListItemStyled = styled(ListItem)(({ theme }) => ({
   justifyContent: "flex-start"
 }));
@@ -38,7 +34,8 @@ const MessageCardContent = function(props){
   return (
     <CardContent>
       <Typography>{props.message}</Typography>
-      <TimeTypography title='time shows here'>{props.time}</TimeTypography>
+      {/* <TimeTypography title={props.time}><Moment>{props.time}</Moment></TimeTypography> */}
+      <Typography variant="time" title={props.time}><Moment format="h:mmA">{props.time}</Moment></Typography>
     </CardContent>
   )
 }
@@ -59,6 +56,18 @@ const OtherListItem = function (props) {
   </OtherListItemStyled>
 }
 
+
+const MeListItem = function (props) {
+  return <MeListItemStyled>
+    <Card>
+      <MessageCardContent {...props} />
+    </Card>
+
+    <MessageSentStatus {...props} />
+
+  </MeListItemStyled>
+}
+
 const MessageSentStatus = function(props){
   if(props.status === undefined)
     return;
@@ -75,17 +84,6 @@ const MessageSentStatus = function(props){
     variant="body2" title={props.status}>{content}</Typography>
 }
 
-const MeListItem = function (props) {
-  return <MeListItemStyled>
-    <Card>
-      <MessageCardContent {...props} />
-    </Card>
-
-    <MessageSentStatus {...props} />
-
-  </MeListItemStyled>
-}
-
 const MessageListItem = function (props){
   let OurComponent;
   if(props.type === "in")
@@ -100,7 +98,7 @@ const getListHeight = () => {
   return window.innerHeight - 225;
 }
 
-export default function({shouldPlaySound, prependToDebugLog: addLog}){
+export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugLog: addLog}){
   const messageRef = useRef('');
   const messageListRef = useRef(null);
   const audioRef = useRef(null);

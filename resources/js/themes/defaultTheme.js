@@ -1,4 +1,4 @@
-import { blueGrey, green } from '@mui/material/colors';
+import { blueGrey, green, lightBlue } from '@mui/material/colors';
 import { createTheme } from '@mui/material/styles';
 
 export default createTheme({
@@ -49,6 +49,15 @@ export default createTheme({
           },
         },
       },
+
+      variants: [
+        {
+          props: { variant: "time" },
+          style: {
+            fontSize: "80%"
+          }
+        }
+      ]
     },
   },
 });
