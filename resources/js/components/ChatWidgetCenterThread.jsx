@@ -1,30 +1,28 @@
 import React, { useRef } from "react";
 import Grid from '@mui/material/Grid';
-import { Button, CardContent, Collapse, Divider, Fab, List, ListItem, Paper, TextField, Typography } from '@mui/material';
+import { Button, Divider, Fab, List, ListItem, Paper, TextField, Typography } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CircleIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorCircleIcon from '@mui/icons-material/ErrorOutline';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { TransitionGroup } from "react-transition-group";
 import { setFetchLatestLastMessageID, startFetchLatest, stopFetchLatest } from "../pollers/messagePollers";
 import ArrayHelper from "../helpers/ArrayHelper";
 import uniqid from "uniqid";
-import Moment from "./Moment";
+import { MomentTooltip } from "./Moment";
 
 const WELCOME_MESSAGE = `hello there, ${APP_VISITOR}. just type a message to see what happens.`;
 
 const MessageCardContent = function(props){
   return (
-    <CardContent>
+    <MomentTooltip datetime={props.time} format="LLLL ZZ" placement="bottom">
       <Typography>{props.message}</Typography>
-      <Typography variant="time" color="tertiary"><Moment format="h:mmA">{props.time}</Moment></Typography>
-    </CardContent>
+    </MomentTooltip>
   )
 }
 
 const OtherListItem = function (props) {
-  return <ListItem className="authorIsThem">
+  return <ListItem className="messageListItem authorIsThem">
     <AccountCircleIcon
       sx={{
         display: {
@@ -41,7 +39,7 @@ const OtherListItem = function (props) {
 
 
 const MeListItem = function (props) {
-  return <ListItem className="authorIsMe">
+  return <ListItem className="messageListItem authorIsMe">
     <Paper elevation={10}>
       <MessageCardContent {...props} />
     </Paper>
@@ -81,7 +79,7 @@ const getListHeight = () => {
   return window.innerHeight - 225;
 }
 
-export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugLog: addLog}){
+export default function ChatWidgetCenterThread({shouldPlaySound}){
   const messageRef = useRef('');
   const messageListRef = useRef(null);
   const audioRef = useRef(null);
@@ -103,7 +101,6 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
   const shouldPlaySoundRef = React.useRef(shouldPlaySound);
   React.useEffect(() => {
     shouldPlaySoundRef.current = shouldPlaySound;
-    // addLog(JSON.stringify({shouldPlaySound}));
   }, [shouldPlaySound]);
 
   const [messages,setMessages] = React.useState([]);
@@ -119,6 +116,10 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
       messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
     }
   }
+
+  React.useEffect(() => {
+    scrollToBottom();
+  },[messages]);
 
   React.useEffect(() => {
     if(messageHistoryLoaded){
@@ -220,10 +221,6 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
           // console.debug(`${message.clientSideMessageID} === ${newMessageObject.meta.clientSideMessageID}`);
           const duplicateResult = message.clientSideMessageID === newMessageObject.meta.clientSideMessageID;
 
-          if(duplicateResult){
-            addLog(`skip\n${message.message}\n${message.clientSideMessageID.slice(0,4)}`);
-          }
-
           return duplicateResult;
         }
         return false;
@@ -262,8 +259,7 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
     {
       newMessages.forEach((message) => {
         const formattedMessage = formatMessage(message);
-        // addLog(JSON.stringify({ newMessages }, null, 2));
-        // addLog(`server\n${message.message} ${message.type}`)
+
         appendToMessages(formattedMessage);
       });
 
@@ -344,13 +340,9 @@ export default function ChatWidgetCenterThread({shouldPlaySound, prependToDebugL
           overflow: "auto"
         }}
       >
-        <TransitionGroup>
-          {messages.map((item, i) => (
-            <Collapse key={i} timeout={500} onEntered={() => scrollToBottom()}>
-              <MessageListItem {...item} />
-            </Collapse>
-          ))}
-        </TransitionGroup>
+        {messages.map((item, i) => (
+          <MessageListItem key={i} {...item} />
+        ))}
       </List>
 
       <Divider />
