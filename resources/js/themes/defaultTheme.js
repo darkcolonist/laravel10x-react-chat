@@ -1,9 +1,10 @@
-import { blue, blueGrey, green, lightBlue, pink } from '@mui/material/colors';
+import { blueGrey, green } from '@mui/material/colors';
 import { createTheme } from '@mui/material/styles';
 
 export default createTheme({
   palette: {
-    mode: 'dark'
+    mode: 'dark',
+    tertiary: green[200]
   },
   components: {
     MuiChip: {
@@ -54,7 +55,7 @@ export default createTheme({
         {
           props: { variant: "time" },
           style: {
-            fontSize: "80%"
+            fontSize: ".75rem",
           }
         }
       ]
