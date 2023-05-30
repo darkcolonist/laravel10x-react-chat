@@ -21,28 +21,9 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const MAX_DEBUG_LOGS = 10;
-
 export default function ChatWidget() {
 
   const [shouldPlaySound,setShouldPlaySound] = React.useState(false);
-  const [debugLog,setDebugLog] = React.useState([]);
-
-  React.useEffect(() => {
-    prependToDebugLog('logging started');
-  },[]);
-
-  const prependToDebugLog = (log) => {
-    if(!EnvHelper.isDebugMode()) return;
-
-    const timestamp = DateTimeHelper.currentTime();
-
-    setDebugLog((prevLog) => {
-      const newLogItem = { timestamp, log };
-      const newLog = [newLogItem, ...prevLog];
-      return newLog.slice(0, MAX_DEBUG_LOGS); // Truncate the array to the last 20 logs
-    });
-  };
 
   const headerFooter = <React.Fragment>
     <Typography variant='span'>{APP_NAME}</Typography>
@@ -71,8 +52,7 @@ export default function ChatWidget() {
 
             <Grid item xs={12} md={8}>
               <ChatWidgetCenterThread {...{
-                shouldPlaySound,
-                prependToDebugLog
+                shouldPlaySound
               }} />
             </Grid>
 
@@ -83,10 +63,6 @@ export default function ChatWidget() {
               }
             }}>
               <ChatWidgetProfileCard name="Operator" description="This is you" bgcolor={blue[300]} />
-
-              {EnvHelper.isDebugMode() ?
-                <DebugLogContainer log={debugLog} />
-                :null}
             </Grid>
           </Grid>
 

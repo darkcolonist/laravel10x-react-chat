@@ -1,11 +1,19 @@
-import { blueGrey, green } from '@mui/material/colors';
+import { blue, blueGrey, green } from '@mui/material/colors';
 import { createTheme } from '@mui/material/styles';
 
+const palette = {
+  mode: 'dark',
+  // mode: 'light',
+  tertiary: {
+    dark: green[400],
+    light: green[900],
+    main: green[200],
+    color: () => palette.mode === "dark" ? palette.tertiary.dark : palette.tertiary.light
+  }
+};
+
 export default createTheme({
-  palette: {
-    mode: 'dark',
-    tertiary: green[200]
-  },
+  palette,
   components: {
     MuiChip: {
       styleOverrides: {
@@ -56,6 +64,7 @@ export default createTheme({
           props: { variant: "time" },
           style: {
             fontSize: ".75rem",
+            color: palette.tertiary.color()
           }
         }
       ]
@@ -64,16 +73,40 @@ export default createTheme({
     MuiListItem: {
       styleOverrides:{
         root: {
+          '&.messageListItem .MuiPaper-root': {
+            padding: "10px",
+            maxWidth: "95%"
+          },
+
+          '&.authorIsMe .MuiPaper-root': {
+            borderBottomLeftRadius: 20
+          },
+          '&.authorIsThem .MuiPaper-root': {
+            // borderTopRightRadius: 15,
+            borderBottomRightRadius: 20
+          },
+
           '&.authorIsMe' : {
             justifyContent: "flex-end",
+            textAlign: "right",
             '& .statusIcon': {
               fontSize: 15
+            },
+            '& p.MuiTypography-root': {
+              textAlign: "left"
+            },
+            '& .MuiPaper-root': {
+              backgroundColor: palette.mode === "dark" ? blue[900] : blue[300],
+              color: palette.mode === "dark" ? '#fff' : '#000'
             }
           },
 
           '&.authorIsThem' : {
-            justifyContent: "flex-start"
-          }
+            justifyContent: "flex-start",
+            textAlign: "left",
+          },
+
+
         }
       }
     }
