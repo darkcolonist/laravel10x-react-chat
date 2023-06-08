@@ -47,7 +47,7 @@ export default function ChatWidget() {
                 md: "block"
               }
             }}>
-              <ChatWidgetProfileCard name="FML Guy" description="The daily struggle guy" bgcolor={red[500]} />
+              <ChatWidgetProfileCard name="Random Person from FMyLife" description="The daily struggle guy" bgcolor={red[500]} />
             </Grid>
 
             <Grid item xs={12} md={8}>
